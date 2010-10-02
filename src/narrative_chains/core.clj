@@ -1,4 +1,4 @@
-(ns stanford-parser-clj.core
+(ns narrative-chains.core
   (:use [clojure.contrib.duck-streams :as d]
         [clojure.contrib.command-line])
   (:import [java.io PrintWriter StringWriter]
@@ -75,5 +75,13 @@
                 (recur (conj data (parses-to-treebank-strings (first ps)))
                        (rest ps)
                        (inc cnt)))
-              data))]
+              data))
+        entity-tables
+          (loop [data [] ps parses cnt 1]
+            (if (seq ps)
+              (do  
+                (println "Entity table for file: " cnt " / " file-cnt)
+                (recur (conj data (coref/process-parse (first ps)))
+                       (rest ps)
+                       (inc cnt)))))]
     )))

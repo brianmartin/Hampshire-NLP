@@ -1,4 +1,4 @@
-(ns stanford-parser-clj.test.core
+(ns narrative-chains.test.core
   (:use [stanford-parser-clj.core] :reload)
   (:use [clojure.test]))
 
