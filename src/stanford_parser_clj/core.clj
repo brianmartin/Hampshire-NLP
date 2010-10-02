@@ -23,25 +23,20 @@
             (. lp parse s)
             (. lp getBestParse)))))))
 
-(defn parse-to-treebank-string
-  [p]
+(defn parse-to-string
+  [p print-type]
   (let [sw (StringWriter.)
-        tp (TreePrint. "penn")]
+        tp (TreePrint. print-type)]
     (. tp printTree p (PrintWriter. sw))
     (. sw toString)))
 
 (defn parses-to-treebank-strings
   [parses]
-  (map parse-to-treebank-string parses))
+  (map #(parse-to-string % "penn") parses))
 
 (defn parses-to-dep-strings
   [parses]
-  (let [tp (TreePrint. "typedDependenciesCollapsed")]
-    (doall 
-      (for [t parses]
-        (let [sw (StringWriter.)]
-          (. tp printTree t (PrintWriter. sw))
-          (. sw toString))))))
+  (map #(parse-to-string % "typedDependenciesCollapsed") parses))
 
 (defn -main [& args]
   (with-command-line args "Parse and Coref"
