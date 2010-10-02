@@ -1,42 +1,13 @@
 (ns narrative-chains.core
-  (:use [clojure.contrib.duck-streams :as d]
-        [clojure.contrib.command-line])
-  (:import [java.io PrintWriter StringWriter]
-           [edu.stanford.nlp.process DocumentPreprocessor]
-           [edu.stanford.nlp.parser.lexparser LexicalizedParser]
-           [edu.stanford.nlp.trees TreePrint]
-           [edu.stanford.nlp.ling Word HasWord]
-           [opennlp.tools.coref DefaultLinker DiscourseEntity Linker LinkerMode]
-           [opennlp.tools.coref.mention DefaultParse Mention MentionContext PTBMentionFinder]
-           [opennlp.tools.parser Parse]
-           [opennlp.tools.parser.chunking Parser]
-           [opennlp.tools.util Span]
-           [opennlp.tools.lang.english TreebankLinker]))
-
-(defn file-to-parses
-  [file charset lp dp]
-  (with-open [rdr (reader file)]
-    (let [sentences (. dp getSentencesFromText rdr)]
-      (doall
-        (for [s sentences]
-          (do (. lp (parse s)) (. lp getBestParse)))))))
-
-(defn parse-to-string
-  [p print-type]
-  (let [sw (StringWriter.)]
-    (. (TreePrint. print-type) printTree p (PrintWriter. sw))
-    (. sw toString)))
-
-(defn parses-to-treebank-strings
-  [parses]
-  (map #(parse-to-string % "penn") parses))
-
-(defn parses-to-dep-strings
-  [parses]
-  (map #(parse-to-string % "typedDependenciesCollapsed") parses))
+  (:require [clojure.contrib.duck-streams :as d :only file-str]
+            [clojure.contrib.command-line :as cl]
+            [narrative-chains.parser :as p]
+            [narrative-chains.coref :as c])
+  (:import [edu.stanford.nlp.process DocumentPreprocessor]
+           [edu.stanford.nlp.parser.lexparser LexicalizedParser]))
 
 (defn -main [& args]
-  (with-command-line args "Parse and Coref"
+  (cl/with-command-line args "Parse and Coref"
     [[input-dir i "Folder containing input files." "~/test-data"]
      [output-dir o "Destination folder for output files." "~/output-data"]
      [charset c "Charset of input." "utf-8"]
@@ -54,7 +25,7 @@
             (if (seq fs)
               (do 
                 (println "Initial parse of file: " cnt " / " file-cnt)
-                (recur (conj data (file-to-parses (first fs) charset lp dp))
+                (recur (conj data (p/file-to-parses (first fs) charset lp dp))
                        (rest fs)
                        (inc cnt)))
               data))
@@ -63,7 +34,7 @@
             (if (seq ps)
               (do
                 (println "Stanford parse of file: " cnt " / " file-cnt)
-                (recur (conj data (parses-to-dep-strings (first ps)))
+                (recur (conj data (p/parses-to-dep-strings (first ps)))
                        (rest ps)
                        (inc cnt)))
               data))
@@ -72,7 +43,7 @@
             (if (seq ps)
               (do
                 (println "Stringing parse of file: " cnt " / " file-cnt)
-                (recur (conj data (parses-to-treebank-strings (first ps)))
+                (recur (conj data (p/parses-to-treebank-strings (first ps)))
                        (rest ps)
                        (inc cnt)))
               data))
@@ -81,7 +52,7 @@
             (if (seq ps)
               (do  
                 (println "Entity table for file: " cnt " / " file-cnt)
-                (recur (conj data (coref/process-parse (first ps)))
+                (recur (conj data (c/process-parse (first ps)))
                        (rest ps)
                        (inc cnt)))))]
     )))
