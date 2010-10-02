@@ -19,15 +19,12 @@
     (let [sentences (. dp getSentencesFromText rdr)]
       (doall
         (for [s sentences]
-          (do 
-            (. lp parse s)
-            (. lp getBestParse)))))))
+          (do (. lp (parse s)) (. lp getBestParse)))))))
 
 (defn parse-to-string
   [p print-type]
-  (let [sw (StringWriter.)
-        tp (TreePrint. print-type)]
-    (. tp printTree p (PrintWriter. sw))
+  (let [sw (StringWriter.)]
+    (. (TreePrint. print-type) printTree p (PrintWriter. sw))
     (. sw toString)))
 
 (defn parses-to-treebank-strings
@@ -60,17 +57,16 @@
                 (recur (conj data (file-to-parses (first fs) charset lp dp))
                        (rest fs)
                        (inc cnt)))
-              (println "done1")))
+              data))
         stanford-dep-parses 
           (loop [data [] ps parses cnt 1]
             (if (seq ps)
               (do
                 (println "Stanford parse of file: " cnt " / " file-cnt)
-                (println data)
                 (recur (conj data (parses-to-dep-strings (first ps)))
                        (rest ps)
                        (inc cnt)))
-              (println "done2")))
+              data))
         stringed-parses
           (loop [data [] ps parses cnt 1]
             (if (seq ps)
@@ -78,5 +74,6 @@
                 (println "Stringing parse of file: " cnt " / " file-cnt)
                 (recur (conj data (parses-to-treebank-strings (first ps)))
                        (rest ps)
-                       (inc cnt)))))]
-    stringed-parses)))
+                       (inc cnt)))
+              data))]
+    )))
