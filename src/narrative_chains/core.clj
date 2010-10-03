@@ -24,39 +24,15 @@
         file-cnt (count files)
         odir (d/file-str output-dir)
         documents
-          (loop [data [] fs files cnt 1]
-            (if (seq fs)
-              (do 
-                (println "Initial parse of file: " cnt " / " file-cnt)
-                (recur (conj data (p/file-to-parses (first fs) charset lp dp))
-                       (rest fs)
-                       (inc cnt)))
-              data))
+          (map #(do (println "Initial parse of file: " (inc %2) "/" file-cnt)
+                    (p/file-to-parses % charset lp dp)) files (range file-cnt))
         stanford-dep-parses 
-          (loop [data [] ds documents cnt 1]
-            (if (seq ds)
-              (do
-                (println "Stanford parse of file: " cnt " / " file-cnt)
-                (recur (conj data (p/parses-to-dep-strings (first ds)))
-                       (rest ds)
-                       (inc cnt)))
-              data))
+          (map #(do (println "Stanford parse of file: " (inc %2) "/" file-cnt)
+                    (p/parses-to-dep-strings %)) documents (range file-cnt))
         stringed-parses
-          (loop [data [] ds documents cnt 1]
-            (if (seq ds)
-              (do
-                (println "Stringing parse of file: " cnt " / " file-cnt)
-                (recur (conj data (p/parses-to-treebank-strings (first ds)))
-                       (rest ds)
-                       (inc cnt)))
-              data))
+          (map #(do (println "Stringing parse of file: " (inc %2) "/" file-cnt)
+                    (p/parses-to-treebank-strings %)) documents (range file-cnt))
         entity-tables
-          (loop [data [] ps stringed-parses cnt 1]
-            (if (seq ps)
-              (do  
-                (println "Entity table for file: " cnt " / " file-cnt)
-                (recur (conj data (c/process-parses (first ps)))
-                       (rest ps)
-                       (inc cnt)))
-              data))]
+          (map #(do (println "Entity table for file: " (inc %2) "/" file-cnt)
+                    (c/process-parses %)) stringed-parses (range file-cnt))]
     (println entity-tables))))
