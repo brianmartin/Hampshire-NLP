@@ -1,9 +1,10 @@
 (ns narrative-chains.core
-  (:require [clojure.contrib.duck-streams :as d :only file-str]
+  (:require [clojure.contrib.duck-streams :as d]
             [clojure.contrib.command-line :as cl]
             [narrative-chains.parser :as p]
             [narrative-chains.coref :as c])
-  (:import [edu.stanford.nlp.process DocumentPreprocessor]
+  (:import [java.io File]
+           [edu.stanford.nlp.process DocumentPreprocessor]
            [edu.stanford.nlp.parser.lexparser LexicalizedParser]))
 
 (defn -main [& args]
@@ -37,4 +38,11 @@
         entity-tables
           (map #(do (println "Entity table for file: " (inc %2) "/" file-cnt)
                     (c/process-parses %)) stringed-parses (range file-cnt))]
-    (println entity-tables))))
+    (dotimes [i (count files)]
+      (let [f-name (.getName (nth files i))
+            parent (d/file-str (str output-dir "/" f-name))]
+        (.mkdir parent)
+        (d/write-lines (File. parent "enity-table") (list (nth entity-tables i)))
+        (dotimes [j (count (nth stanford-dep-parses i))]
+          (d/write-lines (File. parent (str "sdep." j)) (-> stanford-dep-parses
+                                                              (nth i) (nth j) (list)))))))))
