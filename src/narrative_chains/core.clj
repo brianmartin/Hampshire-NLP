@@ -5,7 +5,8 @@
             [narrative-chains.coref :as c])
   (:import [java.io File]
            [edu.stanford.nlp.process DocumentPreprocessor]
-           [edu.stanford.nlp.parser.lexparser LexicalizedParser]))
+           [edu.stanford.nlp.parser.lexparser LexicalizedParser])
+  (:gen-class))
 
 (defn -main [& args]
   "Main method of 'narrative-chains'.  Parses files in an input directory,

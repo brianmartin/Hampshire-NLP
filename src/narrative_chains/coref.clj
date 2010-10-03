@@ -10,12 +10,10 @@
 (defn- word-index
   "Given text and character index, returns word index."
   [text idx]
-  (loop [i 0 s 1]
-    (if (< i idx)
-      (if (= \space (nth text i))
-        (recur (inc i) (inc s))
-        (recur (inc i) s))
-      s)))
+  (->> text (take idx)
+            (filter #(= \space %))
+            (count)
+            (inc)))
 
 (defn- table-format
   "Formats information for placing into the entity-table."
