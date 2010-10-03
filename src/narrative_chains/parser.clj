@@ -26,6 +26,6 @@
   (map #(parse-to-string % "penn") parses))
 
 (defn parses-to-dep-strings
-  "Converts parses to treebank strings styled as collapsed typed dependencies."
+  "Converts parses to treebank strings using collapsed type dependency style"
   [parses]
   (map #(parse-to-string % "typedDependenciesCollapsed") parses))

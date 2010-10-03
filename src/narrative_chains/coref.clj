@@ -23,7 +23,7 @@
 
 (defn- show-entities
   "Returns a string of the entity-table given mentions, a linker, and the text."
-  [all-extents linker sent-text]
+  [all-extents linker sentences]
   (let [mentions (. all-extents toArray (make-array Mention (. all-extents size)))
         entities (. linker getEntities mentions)
         entity-table (StringBuilder.)]
@@ -34,7 +34,7 @@
           (let [mc (. iter next)
                 s-num (. mc getSentenceNumber)]
             (. entity-table append (str (table-format s-num (. mc toText)
-                                          (. mc getSpan) (nth sent-text (dec s-num)) i) "\n"))))))
+                                          (. mc getSpan) (nth sentences (dec s-num)) i) "\n"))))))
     (. entity-table toString)))
 
 (defn process-parses
@@ -55,5 +55,5 @@
           (. all-extents addAll (. Arrays asList extents))
           (recur (rest ps)
                  (inc sent-num)
-                 (conj sent-text (first ps))))
+                 (conj sent-text (. p getText))))
         (show-entities all-extents linker sent-text)))))
