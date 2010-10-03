@@ -30,16 +30,16 @@
         file-cnt (count files)
         odir (d/file-str output-dir)
         documents
-          (map #(do (println "Initial parse of file: " (inc %2) "/" file-cnt)
+          (map #(do (println "Initial parse of file:   " (inc %2) "/" file-cnt)
                     (p/file-to-parses % charset lp dp)) files (range file-cnt))
         stanford-dep-parses 
-          (map #(do (println "Stanford parse of file: " (inc %2) "/" file-cnt)
+          (map #(do (println "Stanford parse of file:  " (inc %2) "/" file-cnt)
                     (p/parses-to-dep-strings %)) documents (range file-cnt))
         stringed-parses
           (map #(do (println "Stringing parse of file: " (inc %2) "/" file-cnt)
                     (p/parses-to-treebank-strings %)) documents (range file-cnt))
         entity-tables
-          (map #(do (println "Entity table for file: " (inc %2) "/" file-cnt)
+          (map #(do (println "Entity table for file:   " (inc %2) "/" file-cnt)
                     (c/process-parses %)) stringed-parses (range file-cnt))]
     (dotimes [i (count files)]
       (let [f-name (.getName (nth files i))
@@ -48,4 +48,4 @@
         (dotimes [j (count (nth stanford-dep-parses i))]
           (d/write-lines (File. parent (str "sdep." j))
                          (-> stanford-dep-parses (nth i) (nth j) (list))))
-        (d/write-lines (File. parent "enity-table") (list (nth entity-tables i))))))))
+        (d/write-lines (File. parent "entity-table") (list (nth entity-tables i))))))))
