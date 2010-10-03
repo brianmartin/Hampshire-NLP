@@ -8,6 +8,31 @@
            [edu.stanford.nlp.parser.lexparser LexicalizedParser])
   (:gen-class))
 
+(def complete (agent 0))
+
+(defn record-parses
+  [parent parses]
+  (dotimes [i (count parses)]
+    (d/write-lines (File. parent (str "sdep." i))
+      (list (nth parses i)))))
+
+(defn record-entity-table
+  [parent table]
+  (d/write-lines (File. parent "entity-table") (list table)))
+
+(defn run
+  [files lp dp charset output-dir-name output-dir batch-number]
+  (let [documents (map #(p/file-to-parses % charset lp dp) files)
+        stanford-dep-parses (map #(p/parses-to-dep-strings %) documents)
+        stringed-parses (map #(p/parses-to-treebank-strings %) documents)
+        entity-tables (map #(c/process-parses %) stringed-parses)]
+    (dotimes [i (count files)]
+      (let [parent (d/file-str (str output-dir-name "/" (.getName (nth files i))))]
+        (.mkdir parent)
+        (record-parses parent (nth stanford-dep-parses i))
+        (record-entity-table parent (nth entity-tables i))
+        (send complete inc)))))
+
 (defn -main [& args]
   "Main method of 'narrative-chains'.  Parses files in an input directory,
   performs coref, and writes results to the output directory."
@@ -23,29 +48,11 @@
   (intern 'narrative-chains.coref 'resource coref)
   (System/setProperty "WNSEARCHDIR" wordnet)
 
-  (let [lp (LexicalizedParser. grammar)
-        dp (DocumentPreprocessor.)
-        idir (d/file-str input-dir)
-        files (. idir listFiles)
-        file-cnt (count files)
-        odir (d/file-str output-dir)
-        documents
-          (map #(do (println "Initial parse of file:   " (inc %2) "/" file-cnt)
-                    (p/file-to-parses % charset lp dp)) files (range file-cnt))
-        stanford-dep-parses 
-          (map #(do (println "Stanford parse of file:  " (inc %2) "/" file-cnt)
-                    (p/parses-to-dep-strings %)) documents (range file-cnt))
-        stringed-parses
-          (map #(do (println "Stringing parse of file: " (inc %2) "/" file-cnt)
-                    (p/parses-to-treebank-strings %)) documents (range file-cnt))
-        entity-tables
-          (map #(do (println "Entity table for file:   " (inc %2) "/" file-cnt)
-                    (c/process-parses %)) stringed-parses (range file-cnt))]
-    (dotimes [i (count files)]
-      (let [f-name (.getName (nth files i))
-            parent (d/file-str (str output-dir "/" f-name))]
-        (.mkdir parent)
-        (dotimes [j (count (nth stanford-dep-parses i))]
-          (d/write-lines (File. parent (str "sdep." j))
-                         (-> stanford-dep-parses (nth i) (nth j) (list))))
-        (d/write-lines (File. parent "entity-table") (list (nth entity-tables i))))))))
+  (let [output-dir-File (d/file-str output-dir)
+        lp (LexicalizedParser. grammar)
+        files (.listFiles (d/file-str input-dir))
+        file-cnt (count files)]
+    (add-watch complete :k #(println %4 "/" file-cnt))
+    (doall (map #(run %1 lp (DocumentPreprocessor.) charset output-dir output-dir-File %2) 
+                 (partition 3 files) (range)))))
+  (System/exit 0))
