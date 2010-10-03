@@ -8,6 +8,8 @@
            [edu.stanford.nlp.parser.lexparser LexicalizedParser]))
 
 (defn -main [& args]
+  "Main method of 'narrative-chains'.  Parses files in an input directory,
+  performs coref, and writes results to the output directory."
   (cl/with-command-line args "Parse and Coref"
     [[input-dir i "Folder containing input files." "~/test-data"]
      [output-dir o "Destination folder for output files." "~/output-data"]
@@ -42,7 +44,7 @@
       (let [f-name (.getName (nth files i))
             parent (d/file-str (str output-dir "/" f-name))]
         (.mkdir parent)
-        (d/write-lines (File. parent "enity-table") (list (nth entity-tables i)))
         (dotimes [j (count (nth stanford-dep-parses i))]
-          (d/write-lines (File. parent (str "sdep." j)) (-> stanford-dep-parses
-                                                              (nth i) (nth j) (list)))))))))
+          (d/write-lines (File. parent (str "sdep." j))
+                         (-> stanford-dep-parses (nth i) (nth j) (list))))
+        (d/write-lines (File. parent "enity-table") (list (nth entity-tables i))))))))

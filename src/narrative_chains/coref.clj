@@ -8,6 +8,7 @@
 (def resource nil)
 
 (defn- word-index
+  "Given text and character index, returns word index."
   [text idx]
   (loop [i 0 s 1]
     (if (< i idx)
@@ -17,11 +18,13 @@
       s)))
 
 (defn- table-format
+  "Formats information for placing into the entity-table."
   [sid phrase span text eid]
   (apply str (interpose \space (list
     sid eid (word-index text (. span getStart)) (word-index text (. span getEnd)) phrase))))
 
 (defn- show-entities
+  "Returns a string of the entity-table given mentions, a linker, and the text."
   [all-extents linker sent-text]
   (let [mentions (. all-extents toArray (make-array Mention (. all-extents size)))
         entities (. linker getEntities mentions)
@@ -37,6 +40,7 @@
     (. entity-table toString)))
 
 (defn process-parses
+  "Gets mentions from the parses and puts them into a string representation of an entity table."
   [parses]
   (let [linker (TreebankLinker. resource (. LinkerMode TEST))
         all-extents (ArrayList.)]
