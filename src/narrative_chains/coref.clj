@@ -7,7 +7,7 @@
 
 (def resource nil)
 
-(defn word-index
+(defn- word-index
   [text idx]
   (loop [i 0 s 1]
     (if (< i idx)
@@ -16,12 +16,12 @@
         (recur (inc i) s))
       s)))
 
-(defn table-format
+(defn- table-format
   [sid phrase span text eid]
   (apply str (interpose \space (list
     sid eid (word-index text (. span getStart)) (word-index text (. span getEnd)) phrase))))
 
-(defn show-entities
+(defn- show-entities
   [all-extents linker sent-text]
   (let [mentions (. all-extents toArray (make-array Mention (. all-extents size)))
         entities (. linker getEntities mentions)
