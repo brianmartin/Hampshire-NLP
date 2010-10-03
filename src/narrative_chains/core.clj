@@ -12,9 +12,11 @@
      [output-dir o "Destination folder for output files." "~/output-data"]
      [charset c "Charset of input." "utf-8"]
      [grammar g "Grammar file for Stanford Parser." "data/englishPCFG.ser.gz"]
+     [coref c "Coref data directory for OpenNLP." "data/coref"]
      [wordnet w "Wordnet dir (for JWNL)" "data/wordnet"]
      etc]
 
+  (intern 'narrative-chains.coref 'resource coref)
   (System/setProperty "WNSEARCHDIR" wordnet)
 
   (let [lp (LexicalizedParser. grammar)

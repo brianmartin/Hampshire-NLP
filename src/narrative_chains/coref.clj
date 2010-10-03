@@ -5,7 +5,7 @@
            [opennlp.tools.parser Parse]
            [opennlp.tools.lang.english TreebankLinker]))
 
-(def resource "data/coref")
+(def resource nil)
 
 (defn word-index
   [text idx]
