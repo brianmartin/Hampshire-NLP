@@ -1,13 +1,11 @@
 (ns narrative-chains.parser
-  (:use    [clojure.contrib.duck-streams])
-  (:import [java.io PrintWriter StringWriter]
-           [edu.stanford.nlp.process DocumentPreprocessor]
-           [edu.stanford.nlp.parser.lexparser LexicalizedParser]
-           [edu.stanford.nlp.trees TreePrint]))
+  (:require [clojure.contrib.duck-streams :as d :only reader])
+  (:import  [java.io PrintWriter StringWriter]
+            [edu.stanford.nlp.trees TreePrint]))
 
 (defn file-to-parses
   [file charset lp dp]
-  (with-open [rdr (reader file)]
+  (with-open [rdr (d/reader file)]
     (let [sentences (. dp getSentencesFromText rdr)]
       (doall
         (for [s sentences]

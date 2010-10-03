@@ -12,7 +12,10 @@
      [output-dir o "Destination folder for output files." "~/output-data"]
      [charset c "Charset of input." "utf-8"]
      [grammar g "Grammar file for Stanford Parser." "data/englishPCFG.ser.gz"]
+     [wordnet w "Wordnet dir (for JWNL)" "data/wordnet"]
      etc]
+
+  (System/setProperty "WNSEARCHDIR" wordnet)
 
   (let [lp (LexicalizedParser. grammar)
         dp (DocumentPreprocessor.)
@@ -20,7 +23,7 @@
         files (. idir listFiles)
         file-cnt (count files)
         odir (d/file-str output-dir)
-        parses
+        documents
           (loop [data [] fs files cnt 1]
             (if (seq fs)
               (do 
@@ -30,29 +33,30 @@
                        (inc cnt)))
               data))
         stanford-dep-parses 
-          (loop [data [] ps parses cnt 1]
-            (if (seq ps)
+          (loop [data [] ds documents cnt 1]
+            (if (seq ds)
               (do
                 (println "Stanford parse of file: " cnt " / " file-cnt)
-                (recur (conj data (p/parses-to-dep-strings (first ps)))
-                       (rest ps)
+                (recur (conj data (p/parses-to-dep-strings (first ds)))
+                       (rest ds)
                        (inc cnt)))
               data))
         stringed-parses
-          (loop [data [] ps parses cnt 1]
-            (if (seq ps)
+          (loop [data [] ds documents cnt 1]
+            (if (seq ds)
               (do
                 (println "Stringing parse of file: " cnt " / " file-cnt)
-                (recur (conj data (p/parses-to-treebank-strings (first ps)))
-                       (rest ps)
+                (recur (conj data (p/parses-to-treebank-strings (first ds)))
+                       (rest ds)
                        (inc cnt)))
               data))
         entity-tables
-          (loop [data [] ps parses cnt 1]
+          (loop [data [] ps stringed-parses cnt 1]
             (if (seq ps)
               (do  
                 (println "Entity table for file: " cnt " / " file-cnt)
-                (recur (conj data (c/process-parse (first ps)))
+                (recur (conj data (c/process-parses (first ps)))
                        (rest ps)
-                       (inc cnt)))))]
-    )))
+                       (inc cnt)))
+              data))]
+    (println entity-tables))))
