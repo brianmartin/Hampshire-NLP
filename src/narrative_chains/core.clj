@@ -35,31 +35,28 @@
     (record-parses parent (vec stanford-dep-parse))
     (record-entity-table parent entity-table)))
 
+(defn get-msg [] (String. (.. chan (basicGet "nlp" true) (getBody))))
+
 (defn run
   "Run on files from the queue."
   [output-dir grammar charset]
-  (let [cns (consumer chan "message-q")
-        lp (LexicalizedParser. grammar)
+  (let [lp (LexicalizedParser. grammar)
         dp (DocumentPreprocessor.)]
-    (loop [msg (consume chan cns 15)]
+    (loop [msg (get-msg)]
       (if (not (nil? msg))
         (do
           (run-one (File. msg) lp dp charset output-dir)
-          (recur (consume chan cns 15)))))))
+          (println "done " msg)
+          (recur (get-msg)))))))
 
 (defn dispatch
   "Put all file paths in the input directory into the queue."
   [input-dir]
   (let [files (.listFiles (d/file-str input-dir))]
-    (declare-exchange chan "messages" direct-exchange true true nil)
-    (declare-queue chan "message-q" true false false nil)
-    (bind-queue chan "message-q" "messages" "")
-    (doall (map #(publish chan "messages" "" (.getCanonicalPath %)) files))))
-
-(defn clean-up
-  []
-  (delete-queue chan "message-q")
-  (delete-exchange chan "messages"))
+    (declare-exchange chan "nlp" fanout-exchange false false nil)
+    (declare-queue chan "nlp" false false true nil)
+    (bind-queue chan "nlp" "nlp" "")
+    (doall (map #(publish chan "nlp" "" (.getCanonicalPath %)) files))))
 
 (defn -main [& args]
   "Main method of 'narrative-chains'.  Parses files in an input directory,
