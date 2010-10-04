@@ -1,4 +1,5 @@
 (ns narrative-chains.core
+  (:use [rabbitcj.client])
   (:require [clojure.contrib.duck-streams :as d]
             [clojure.contrib.command-line :as cl]
             [narrative-chains.parser :as p]
@@ -8,7 +9,8 @@
            [edu.stanford.nlp.parser.lexparser LexicalizedParser])
   (:gen-class))
 
-(def complete (agent 0))
+(def conn (connect {:username "guest" :password "guest" :virtual-host "/" :host "127.0.0.1" :port 5672}))
+(def chan (create-channel conn))
 
 (defn record-parses
   "Write sentence parses to files."
@@ -22,19 +24,42 @@
   [parent table]
   (d/write-lines (File. parent "entity-table") (list table)))
 
+(defn run-one
+  [file lp dp charset output-dir]
+  (let [parent (File. output-dir (.getName file))
+        document (p/file-to-parses file charset lp dp)
+        stanford-dep-parse (p/parses-to-dep-strings document)
+        stringed-parse (p/parses-to-treebank-strings document)
+        entity-table (c/process-parses stringed-parse)]
+    (.mkdir parent)
+    (record-parses parent (vec stanford-dep-parse))
+    (record-entity-table parent entity-table)))
+
 (defn run
-  "Pipelining files through processing."
-  [files lp dp charset output-dir-name output-dir batch-number]
-  (let [documents (map #(p/file-to-parses % charset lp dp) files)
-        stanford-dep-parses (map p/parses-to-dep-strings documents)
-        stringed-parses (map p/parses-to-treebank-strings documents)
-        entity-tables (map c/process-parses stringed-parses)]
-    (dotimes [i (count files)]
-      (let [parent (d/file-str (str output-dir-name "/" (.getName (nth files i))))]
-        (.mkdir parent)
-        (record-parses parent (nth stanford-dep-parses i))
-        (record-entity-table parent (nth entity-tables i))
-        (send complete inc)))))
+  "Run on files from the queue."
+  [output-dir grammar charset]
+  (let [cns (consumer chan "message-q")
+        lp (LexicalizedParser. grammar)
+        dp (DocumentPreprocessor.)]
+    (loop [msg (consume chan cns 15)]
+      (if (not (nil? msg))
+        (do
+          (run-one (File. msg) lp dp charset output-dir)
+          (recur (consume chan cns 15)))))))
+
+(defn dispatch
+  "Put all file paths in the input directory into the queue."
+  [input-dir]
+  (let [files (.listFiles (d/file-str input-dir))]
+    (declare-exchange chan "messages" direct-exchange true true nil)
+    (declare-queue chan "message-q" true false false nil)
+    (bind-queue chan "message-q" "messages" "")
+    (doall (map #(publish chan "messages" "" (.getCanonicalPath %)) files))))
+
+(defn clean-up
+  []
+  (delete-queue chan "message-q")
+  (delete-exchange chan "messages"))
 
 (defn -main [& args]
   "Main method of 'narrative-chains'.  Parses files in an input directory,
@@ -46,16 +71,12 @@
      [grammar g "Grammar file for Stanford Parser." "data/englishPCFG.ser.gz"]
      [coref c "Coref data directory for OpenNLP." "data/coref"]
      [wordnet w "Wordnet dir (for JWNL)" "data/wordnet"]
+     [job-dist? j? "Distributor of jobs?"]
      etc]
 
   (intern 'narrative-chains.coref 'resource coref)
   (System/setProperty "WNSEARCHDIR" wordnet)
 
-  (let [output-dir-File (d/file-str output-dir)
-        lp (LexicalizedParser. grammar)
-        files (.listFiles (d/file-str input-dir))
-        file-cnt (count files)]
-    (add-watch complete :k #(println %4 "/" file-cnt))
-    (doall (map #(run %1 lp (DocumentPreprocessor.) charset output-dir output-dir-File %2) 
-                 (partition 3 files) (range)))))
-  (System/exit 0))
+  (if job-dist?
+    (dispatch input-dir)
+    (run (d/file-str output-dir) grammar charset))))

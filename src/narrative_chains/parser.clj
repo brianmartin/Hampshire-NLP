@@ -13,7 +13,7 @@
         (for [s sentences]
           (do (. lp (parse s)) (. lp getBestParse)))))))
 
-(defn- parse-to-string
+(defn parse-to-string
   "Converts a parse to String"
   [p print-type]
   (let [sw (StringWriter.)]
