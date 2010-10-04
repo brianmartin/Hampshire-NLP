@@ -11,21 +11,24 @@
 (def complete (agent 0))
 
 (defn record-parses
+  "Write sentence parses to files."
   [parent parses]
   (dotimes [i (count parses)]
     (d/write-lines (File. parent (str "sdep." i))
       (list (nth parses i)))))
 
 (defn record-entity-table
+  "Write entity-table to file."
   [parent table]
   (d/write-lines (File. parent "entity-table") (list table)))
 
 (defn run
+  "Pipelining files through processing."
   [files lp dp charset output-dir-name output-dir batch-number]
   (let [documents (map #(p/file-to-parses % charset lp dp) files)
-        stanford-dep-parses (map #(p/parses-to-dep-strings %) documents)
-        stringed-parses (map #(p/parses-to-treebank-strings %) documents)
-        entity-tables (map #(c/process-parses %) stringed-parses)]
+        stanford-dep-parses (map p/parses-to-dep-strings documents)
+        stringed-parses (map p/parses-to-treebank-strings documents)
+        entity-tables (map c/process-parses stringed-parses)]
     (dotimes [i (count files)]
       (let [parent (d/file-str (str output-dir-name "/" (.getName (nth files i))))]
         (.mkdir parent)
