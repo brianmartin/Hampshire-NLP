@@ -9,8 +9,8 @@
            [edu.stanford.nlp.parser.lexparser LexicalizedParser])
   (:gen-class))
 
-(def conn (connect {:username "guest" :password "guest" :virtual-host "/" :host "127.0.0.1" :port 5672}))
-(def chan (create-channel conn))
+(def conn nil)
+(def chan nil)
 
 (defn record-parses
   "Write sentence parses to files."
@@ -62,8 +62,8 @@
   "Main method of 'narrative-chains'.  Parses files in an input directory,
   performs coref, and writes results to the output directory."
   (cl/with-command-line args "Parse and Coref"
-    [[input-dir i "Folder containing input files." "~/test-data"]
-     [output-dir o "Destination folder for output files." "~/output-data"]
+    [[input-dir i "Folder containing input files." "~/wrk/nlp/test-data"]
+     [output-dir o "Destination folder for output files." "~/wrk/nlp/output-data"]
      [charset c "Charset of input." "utf-8"]
      [grammar g "Grammar file for Stanford Parser." "data/englishPCFG.ser.gz"]
      [coref c "Coref data directory for OpenNLP." "data/coref"]
@@ -73,6 +73,10 @@
 
   (intern 'narrative-chains.coref 'resource coref)
   (System/setProperty "WNSEARCHDIR" wordnet)
+
+  (def conn (connect {:username "guest" :password "guest" 
+                      :virtual-host "/" :host "127.0.0.1" :port 5672}))
+  (def chan (create-channel conn))
 
   (if job-dist?
     (dispatch input-dir)
