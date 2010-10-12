@@ -46,9 +46,9 @@
       (if (not (nil? msg))
         (do
           (run-one (File. msg) lp dp charset output-dir)
-          (println "done " msg)
-          (recur (get-msg)))
-        (System/sleep 10000)))))
+          (println "done " msg))
+        (System/sleep 10000))
+      (recur (try (get-msg) (catch Exception _ nil))))))
 
 (defn dispatch
   "Put all file paths in the input directory into the queue."
