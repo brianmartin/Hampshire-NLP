@@ -4,5 +4,6 @@
                  [org.clojure/clojure-contrib "1.2.0"]
                  [org.clojars.pjt/opennlp-tools "1.4.3"]
                  [edu.stanford.nlp/stanford-parser "1.6.2"]
+                 [clj-ssh "0.2.0-SNAPSHOT"]
                  [rabbitcj "0.1.0-SNAPSHOT"]]
   :main narrative-chains.core)
