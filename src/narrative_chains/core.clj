@@ -47,7 +47,8 @@
         (do
           (run-one (File. msg) lp dp charset output-dir)
           (println "done " msg)
-          (recur (get-msg)))))))
+          (recur (get-msg)))
+        (System/sleep 10000)))))
 
 (defn dispatch
   "Put all file paths in the input directory into the queue."
@@ -62,8 +63,8 @@
   "Main method of 'narrative-chains'.  Parses files in an input directory,
   performs coref, and writes results to the output directory."
   (cl/with-command-line args "Parse and Coref"
-    [[input-dir i "Folder containing input files." "~/wrk/nlp/test-data"]
-     [output-dir o "Destination folder for output files." "~/wrk/nlp/output-data"]
+    [[input-dir i "Folder containing input files." "~/test-data"]
+     [output-dir o "Destination folder for output files." "~/output-data"]
      [charset c "Charset of input." "utf-8"]
      [grammar g "Grammar file for Stanford Parser." "data/englishPCFG.ser.gz"]
      [coref c "Coref data directory for OpenNLP." "data/coref"]
