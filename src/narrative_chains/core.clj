@@ -47,7 +47,7 @@
         (do
           (run-one (File. msg) lp dp charset output-dir)
           (println "done " msg))
-        (System/sleep 10000))
+        (Thread/sleep 10000))
       (recur (try (get-msg) (catch Exception _ nil))))))
 
 (defn dispatch
