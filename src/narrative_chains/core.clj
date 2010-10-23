@@ -15,25 +15,28 @@
 (defn record-parses
   "Write sentence parses to files."
   [parent parses]
-  (dotimes [i (count parses)]
-    (d/write-lines (File. parent (str "sdep." i))
-      (list (nth parses i)))))
+  (with-open [writer (d/append-writer (File. parent "dep-parses"))]
+    (. writer (write (prn-str parses)))))
 
 (defn record-entity-table
   "Write entity-table to file."
   [parent table]
-  (d/write-lines (File. parent "entity-table") (list table)))
+  (with-open [writer (d/append-writer (File. parent "entity-table"))]
+    (. writer (write (prn-str table)))))
 
 (defn run-one
   [file lp dp charset output-dir]
   (let [parent (File. output-dir (.getName file))
-        document (p/file-to-parses file charset lp dp)
-        stanford-dep-parse (p/parses-to-dep-strings document)
-        stringed-parse (p/parses-to-treebank-strings document)
-        entity-table (c/process-parses stringed-parse)]
+        documents (p/gigaword-file-to-documents file)]
     (.mkdir parent)
-    (record-parses parent (vec stanford-dep-parse))
-    (record-entity-table parent entity-table)))
+    (doseq [document documents]
+      (let [parses (p/document-to-parses document charset lp dp)
+            dep-parse-strings (p/parses-to-dep-strings parses)
+            dep-parses-clj (p/document-dep-strings-to-clj dep-parse-strings)
+            stringed-parse (p/parses-to-treebank-strings parses)
+            entity-table (c/process-parses stringed-parse)]
+      (record-parses parent dep-parses-clj)
+      (record-entity-table parent (p/entity-table-to-clj entity-table))))))
 
 (defn get-msg [] (String. (.. chan (basicGet "nlp" true) (getBody))))
 
