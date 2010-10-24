@@ -33,10 +33,10 @@
     (doseq [document documents]
       (let [parses (p/document-to-parses document charset lp dp)
             dep-parse-strings (p/parses-to-dep-strings parses)
-            dep-parses-clj (p/document-dep-strings-to-clj dep-parse-strings)
+            dep-parses (p/document-dep-strings-to-clj dep-parse-strings)
             stringed-parse (p/parses-to-treebank-strings parses)
             entity-table (p/entity-table-to-clj (c/process-parses stringed-parse))
-            dep-parses-with-entities (counting/count-occurences entity-table dep-parses-clj)]
+            dep-parses-with-entities (counting/count-occurences entity-table dep-parses)]
       (record-parses parent dep-parses-with-entities)
       (record-entity-table parent entity-table)
       (def parses dep-parses-with-entities)

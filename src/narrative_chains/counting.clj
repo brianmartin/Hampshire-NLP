@@ -8,7 +8,8 @@
       (if (<= (first (e :span))
               word-idx
               (second (e :span)))
-        (e :eid))))))
+        (e :eid)
+        nil)))))
 
 (defn count-occurences-per-sentence
   [entity-table parses sid]
@@ -16,7 +17,8 @@
     (for [dep parses]
       (if (or (= (dep :dep) "nsubj")
               (= (dep :dep) "nobj"))
-        (assoc dep :eid (find-entity entity-table (dep :v2-i)))
+        (assoc dep :eid (find-entity (filter #(= (:sid %) sid) entity-table)
+                                     (dep :v2-i)))
         dep))))
 
 (defn count-occurences
