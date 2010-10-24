@@ -3,7 +3,8 @@
   (:require [clojure.contrib.duck-streams :as d]
             [clojure.contrib.command-line :as cl]
             [narrative-chains.parser :as p]
-            [narrative-chains.coref :as c])
+            [narrative-chains.coref :as c]
+            [narrative-chains.counting :as counting])
   (:import [java.io File]
            [edu.stanford.nlp.process DocumentPreprocessor]
            [edu.stanford.nlp.parser.lexparser LexicalizedParser])
@@ -34,9 +35,12 @@
             dep-parse-strings (p/parses-to-dep-strings parses)
             dep-parses-clj (p/document-dep-strings-to-clj dep-parse-strings)
             stringed-parse (p/parses-to-treebank-strings parses)
-            entity-table (c/process-parses stringed-parse)]
-      (record-parses parent dep-parses-clj)
-      (record-entity-table parent (p/entity-table-to-clj entity-table))))))
+            entity-table (p/entity-table-to-clj (c/process-parses stringed-parse))
+            dep-parses-with-entities (counting/count-occurences entity-table dep-parses-clj)]
+      (record-parses parent dep-parses-with-entities)
+      (record-entity-table parent entity-table)
+      (def parses dep-parses-with-entities)
+      (def entity-table entity-table)))))
 
 (defn get-msg [] (String. (.. chan (basicGet "nlp" true) (getBody))))
 

@@ -7,7 +7,7 @@
 
 (def resource nil)
 
-(defn- word-index
+(defn word-index
   "Given text and character index, returns word index."
   [text idx]
   (->> text (take idx)

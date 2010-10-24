@@ -39,12 +39,15 @@
 
 (defn dep-string-to-clj
   "converts dep-string parses to clojure data structure (to be serialized)."
-  [p]
-  {:dep  (second (re-find #"^(.*)\(" p))
-   :v1   (second (re-find #"\((.*)-(\d+)," p))
-   :v1-i (second (re-find #"-(\d+)," p))
-   :v2   (second (re-find #", (.*)-(\d+)\)" p))
-   :v2-i (second (re-find #"-(\d+)\)" p))})
+  [dep-string]
+  (let [p (apply str (filter #(not= \' %) dep-string))]
+  (try
+    {:dep  (second (re-find #"^(.*)\(" p))
+     :v1   (second (re-find #"\((.*)-(\d+)," p))
+     :v1-i (Integer. (second (re-find #"-(\d+)," p)))
+     :v2   (second (re-find #", (.*)-(\d+)\)" p))
+     :v2-i (Integer. (second (re-find #"-(\d+)\)" p)))}
+    (catch java.lang.NumberFormatException e (println "dep-strings: " e p)))))
 
 (defn sentence-dep-strings-to-clj
   [sentence-parse]
@@ -60,11 +63,13 @@
   (let [entries (string/split-lines entity-table)]
     (doall
       (map
-        #(let [indices (re-find #"(\d+) (\d+) (\d+) (\d+) (.*)" %)]
-           {:sid (Integer. (nth indices 1))
-            :eid (Integer. (nth indices 2))
-            :span [(Integer. (nth indices 3)) (Integer. (nth indices 4))]
-            :phrase (nth indices 5)})
+        #(try
+            (let [indices (re-find #"(\d+) (\d+) (\d+) (\d+) (.*)" %)]
+              {:sid (Integer. (nth indices 1))
+               :eid (Integer. (nth indices 2))
+               :span [(Integer. (nth indices 3)) (Integer. (nth indices 4))]
+               :phrase (nth indices 5)})
+           (catch java.lang.NumberFormatException e (println e %)))
         entries))))
 
 (defn parse-to-string
