@@ -13,17 +13,10 @@
 (def conn nil)
 (def chan nil)
 
-(defn record-parses
-  "Write sentence parses to files."
-  [parent parses]
-  (with-open [writer (d/append-writer (File. parent "dep-parses"))]
-    (. writer (write (prn-str parses)))))
-
-(defn record-entity-table
-  "Write entity-table to file."
-  [parent table]
-  (with-open [writer (d/append-writer (File. parent "entity-table"))]
-    (. writer (write (prn-str table)))))
+(defn record
+  [parent file-name data]
+  (with-open [writer (d/append-writer (File. parent file-name))]
+    (. writer (write (prn-str data)))))
 
 (defn run-one
   [file lp dp charset output-dir]
@@ -36,9 +29,11 @@
             dep-parses (p/document-dep-strings-to-clj dep-parse-strings)
             stringed-parse (p/parses-to-treebank-strings parses)
             entity-table (p/entity-table-to-clj (c/process-parses stringed-parse))
-            dep-parses-with-entities (counting/count-occurences entity-table dep-parses)]
-      (record-parses parent dep-parses-with-entities)
-      (record-entity-table parent entity-table)
+            dep-parses-with-entities (counting/count-occurences entity-table dep-parses)
+            count-map (counting/make-count-map dep-parses-with-entities)]
+      (record parent "dep-parses" dep-parses-with-entities)
+      (record parent "entity-table" entity-table)
+      (record parent "count-map" count-map)
       (def parses dep-parses-with-entities)
       (def entity-table entity-table)))))
 
