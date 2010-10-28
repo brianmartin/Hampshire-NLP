@@ -1,5 +1,6 @@
 (ns narrative-chains.core
-  (:use [rabbitcj.client])
+  (:use [rabbitcj.client]
+        [clojure.pprint :only [pprint]])
   (:require [clojure.contrib.duck-streams :as d]
             [clojure.contrib.command-line :as cl]
             [narrative-chains.parser :as p]
@@ -12,6 +13,9 @@
 
 (def conn nil)
 (def chan nil)
+(def parses [])
+(def entity-table [])
+(def counts [])
 
 (defn record
   [parent file-name data]
@@ -28,16 +32,27 @@
             dep-parse-strings (p/parses-to-dep-strings parses)
             dep-parses (p/document-dep-strings-to-clj dep-parse-strings)
             stringed-parse (p/parses-to-treebank-strings parses)
-            entity-table (p/entity-table-to-clj (c/process-parses stringed-parse))
-            dep-parses-with-entities (counting/count-occurences entity-table dep-parses)
+            ent-table (p/entity-table-to-clj (c/process-parses stringed-parse))
+            dep-parses-with-entities (counting/count-occurences ent-table dep-parses)
             count-map (counting/make-count-map dep-parses-with-entities)]
       (record parent "dep-parses" dep-parses-with-entities)
-      (record parent "entity-table" entity-table)
+      (record parent "entity-table" ent-table)
       (record parent "count-map" count-map)
-      (def parses dep-parses-with-entities)
-      (def entity-table entity-table)))))
+      (def parses (conj parses dep-parses-with-entities))
+      (def entity-table (conj entity-table ent-table))
+      (def counts (conj counts count-map))))))
 
 (defn get-msg [] (String. (.. chan (basicGet "nlp" true) (getBody))))
+
+(defn debug-run-one
+  [output-dir grammar charset]
+  (let [lp (LexicalizedParser. grammar)
+        dp (DocumentPreprocessor.)
+        msg (get-msg)]
+    (if (not (nil? msg))
+      (do
+        (run-one (File. msg) lp dp charset output-dir)
+        (println "done " msg)))))
 
 (defn run
   "Run on files from the queue."
@@ -72,6 +87,7 @@
      [coref c "Coref data directory for OpenNLP." "data/coref"]
      [wordnet w "Wordnet dir (for JWNL)" "data/wordnet"]
      [job-dist? j? "Distributor of jobs?"]
+     [debug? d? "Run through only one file for debugging."]
      etc]
 
   (intern 'narrative-chains.coref 'resource coref)
@@ -83,4 +99,6 @@
 
   (if job-dist?
     (dispatch input-dir)
-    (run (d/file-str output-dir) grammar charset))))
+    (if debug?
+      (debug-run-one(d/file-str output-dir) grammar charset)
+      (run (d/file-str output-dir) grammar charset)))))

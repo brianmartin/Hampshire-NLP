@@ -1,7 +1,9 @@
 (ns narrative-chains.counting
-  (:require [clojure.contrib.combinatorics :only combinations :as c]))
+  (:use [clojure.contrib.combinatorics :only [combinations]]))
 
 (defn find-entity
+  "Finds an entity given the entity table for a specific
+  sentence and the index of the word in that sentence."
   [entity-table word-idx]
   (first
   (filter #(not (nil? %))
@@ -13,6 +15,9 @@
         nil)))))
 
 (defn count-occurences-per-sentence
+  "Adds sentence id's to the given dependency parses,
+  along with resolving the enitities given the entity table
+  of the document."
   [entity-table parses sid]
   (map #(assoc % :sid sid)
     (for [dep parses]
@@ -23,6 +28,8 @@
         dep))))
 
 (defn count-occurences
+  "Given the document-wide entity-table and parses,
+  Returns the dep-parses with resolved entities."
   [entity-table parses]
   (apply concat
     (doall
@@ -32,16 +39,36 @@
 (defn make-count-map
   [parses]
   (loop [count-map {}
-         combos (c/combinations (filter :eid parses) 2)]
-    (println count-map (first combos))
+         combos (combinations (filter :eid parses) 2)]
     (if (seq combos)
       (recur (let [combo (first combos)
-                   v1 (:v1 (first combo))
-                   v2 (:v1 (second combo))]
-               (if (= v1 v2)
-                 (let [s (try #{v1 v2}
+                   [c1 c2] combo]
+               (if (= (:eid c1) (:eid c2))
+                 (let [s (try #{(:v1 c1) (:v1 c2) }
                            (catch java.lang.IllegalArgumentException _
-                              #{v1}))
+                              #{(:v1 c1)}))
+                       m (count-map s)]
+                    (if (nil? m)
+                      (assoc count-map s {:cnt 1 :eid (list (:eid c1))})
+                      (assoc count-map s (assoc (assoc m :eid (conj (m :eid) (:eid c1))) :cnt (inc (m :cnt))))))
+                 count-map))
+             (rest combos))
+      count-map)))
+
+(defn make-count-map2
+  "Makes a map of counts of verbs sharing coreferring
+  arguments where the keys are hash-sets of the two verbs
+  (or one verb if two of the same verb co-occur)."
+  [parses]
+  (loop [count-map {}
+         combos (combinations (filter :eid parses) 2)]
+    (if (seq combos)
+      (recur (let [combo (first combos)
+                   [c1 c2] combo]
+               (if (= (:eid c1) (:eid c2))
+                 (let [s (try #{(:v1 c1) (:v1 c2) }
+                           (catch java.lang.IllegalArgumentException _
+                              #{(:v1 c1)}))
                        cell (count-map s)]
                     (if (nil? cell)
                       (assoc count-map s 1)
