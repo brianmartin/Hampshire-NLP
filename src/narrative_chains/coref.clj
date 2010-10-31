@@ -24,18 +24,20 @@
 (defn- show-entities
   "Returns a string of the entity-table given mentions, a linker, and the text."
   [all-extents linker sentences]
-  (let [mentions (. all-extents toArray (make-array Mention (. all-extents size)))
-        entities (. linker getEntities mentions)
-        entity-table (StringBuilder.)]
-    (dotimes [i (alength entities)]
-      (let [e (aget entities i)
-            iter (. e getMentions)]
-        (while (. iter hasNext)
-          (let [mc (. iter next)
-                s-num (. mc getSentenceNumber)]
-            (. entity-table append (str (table-format s-num (. mc toText)
-                                          (. mc getSpan) (nth sentences (dec s-num)) i) "\n"))))))
-    (. entity-table toString)))
+  (try
+    (let [mentions (. all-extents toArray (make-array Mention (. all-extents size)))
+          entities (. linker getEntities mentions)
+          entity-table (StringBuilder.)]
+      (dotimes [i (alength entities)]
+        (let [e (aget entities i)
+              iter (. e getMentions)]
+          (while (. iter hasNext)
+            (let [mc (. iter next)
+                  s-num (. mc getSentenceNumber)]
+              (. entity-table append (str (table-format s-num (. mc toText)
+                                            (. mc getSpan) (nth sentences (dec s-num)) i) "\n"))))))
+      (. entity-table toString))
+  (catch java.lang.Exception _ nil)))
 
 (defn process-parses
   "Gets mentions from the parses and puts them into a string representation of an entity table."
