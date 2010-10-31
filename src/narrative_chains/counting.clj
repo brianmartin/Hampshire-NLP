@@ -21,8 +21,10 @@
   [entity-table parses sid]
   (map #(assoc % :sid sid)
     (for [dep parses]
-      (if (or (= (dep :dep) "nsubj")
-              (= (dep :dep) "nobj"))
+      (if (or (= (dep :dep) "agent")
+              (= (dep :dep) "iobj")
+              (= (dep :dep) "nsubj")
+              (= (dep :dep) "dobj"))
         (assoc dep :eid (find-entity (filter #(= (:sid %) sid) entity-table)
                                      (dep :v2-i)))
         dep))))
