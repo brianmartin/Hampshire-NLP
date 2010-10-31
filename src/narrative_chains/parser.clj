@@ -60,17 +60,19 @@
 
 (defn entity-table-to-clj
   [entity-table]
-  (let [entries (string/split-lines entity-table)]
-    (doall
-      (map
-        #(try
-            (let [indices (re-find #"(\d+) (\d+) (\d+) (\d+) (.*)" %)]
-              {:sid (Integer. (nth indices 1))
-               :eid (Integer. (nth indices 2))
-               :span [(Integer. (nth indices 3)) (Integer. (nth indices 4))]
-               :phrase (nth indices 5)})
-           (catch java.lang.NumberFormatException e (println e %)))
-        entries))))
+  (if (nil? entity-table)
+    nil
+    (let [entries (string/split-lines entity-table)]
+      (doall
+        (map
+          #(try
+              (let [indices (re-find #"(\d+) (\d+) (\d+) (\d+) (.*)" %)]
+                {:sid (Integer. (nth indices 1))
+                 :eid (Integer. (nth indices 2))
+                 :span [(Integer. (nth indices 3)) (Integer. (nth indices 4))]
+                 :phrase (nth indices 5)})
+             (catch java.lang.NumberFormatException e (println e %)))
+          entries)))))
 
 (defn parse-to-string
   "Converts a parse to String"
