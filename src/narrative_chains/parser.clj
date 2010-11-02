@@ -1,7 +1,7 @@
 (ns narrative-chains.parser
   (:require [clojure.contrib.duck-streams :as d :only reader]
             [clojure.contrib.string :as string :only split-lines]
-            [pl.danieljanus.tagsoup :as tagsoup])
+            [pl.danieljanus.tagsoup :only [parse] :as tagsoup])
   (:import  [java.io PrintWriter StringWriter StringReader]
             [edu.stanford.nlp.trees TreePrint]))
 

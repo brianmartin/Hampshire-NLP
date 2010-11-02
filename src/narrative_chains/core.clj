@@ -1,7 +1,7 @@
 (ns narrative-chains.core
   (:use [rabbitcj.client]
         [clojure.pprint :only [pprint]])
-  (:require [clojure.contrib.duck-streams :as d]
+  (:require [clojure.contrib.duck-streams :only [file-str append-writer] :as d]
             [clojure.contrib.command-line :as cl]
             [narrative-chains.parser :as p]
             [narrative-chains.coref :as c]
@@ -37,10 +37,13 @@
             count-map (counting/make-count-map dep-parses-with-entities)]
       (record parent "dep-parses" dep-parses-with-entities)
       (record parent "entity-table" ent-table)
-      (record parent "count-map" count-map)
+      (record parent "count-maps" count-map)
       (def parses (conj parses dep-parses-with-entities))
       (def entity-table (conj entity-table ent-table))
-      (def counts (conj counts count-map))))))
+      (def counts (conj counts count-map))))
+    (let [merged-count-map (counting/merge-count-map-vector counts)]
+      (record parent "merged-count-map" counts)
+      (def merged-counts merged-count-map))))
 
 (defn get-msg [] (String. (.. chan (basicGet "nlp" true) (getBody))))
 
