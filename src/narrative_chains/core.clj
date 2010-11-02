@@ -79,6 +79,20 @@
     (bind-queue chan "nlp" "nlp" "")
     (doall (map #(publish chan "nlp" "" (.getCanonicalPath %)) files))))
 
+(defn merge-all
+  "Merges all count-maps in the output-directory.  For example:
+  ouput-dir/{a,b,c}/merged-count-map -> output-dir/mega-merged-count-map"
+  [output-dir]
+  (let [mega
+         (-> (filter #(not (nil? %))
+               (doall (for [f (.listFiles output-dir)]
+                 (when (.isDirectory f)
+                   (load-string (slurp (str (.getCanonicalPath f) "/merged-count-map")))))))
+           (first)
+           (counting/merge-count-map-vector))]
+    (record output-dir "mega-merged-count-map" mega)
+    (def mega-merged mega)))
+
 (defn -main [& args]
   "Main method of 'narrative-chains'.  Parses files in an input directory,
   performs coref, and writes results to the output directory."
@@ -103,5 +117,5 @@
   (if job-dist?
     (dispatch input-dir)
     (if debug?
-      (debug-run-one(d/file-str output-dir) grammar charset)
+      (debug-run-one (d/file-str output-dir) grammar charset)
       (run (d/file-str output-dir) grammar charset)))))

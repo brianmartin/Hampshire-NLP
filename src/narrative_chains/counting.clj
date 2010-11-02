@@ -41,13 +41,13 @@
 (defn inc-count-map
   [c1 c2 m]
   (let [same-eid
-          (fn [in] (if (= (:eid c1) (:eid c2))
+          (fn [x] (if (= (:eid c1) (:eid c2))
                      (assoc
-                       (assoc in :eid (conj (in :eid) (:eid c1)))
-                       :cnt (inc (:cnt in)))
-                     in))
+                       (assoc x :eid `(quote ~(conj (second (x :eid)) (:eid c1))))
+                       :cnt (inc (:cnt x)))
+                     x))
         naive-cnt
-          (fn [in] (assoc in :naive-cnt (inc (:naive-cnt in))))]
+          (fn [x] (assoc x :naive-cnt (inc (:naive-cnt x))))]
     (-> m
       (naive-cnt)
       (same-eid))))
@@ -62,7 +62,7 @@
                    s (try #{(:v1 c1) (:v1 c2)}
                        (catch java.lang.IllegalArgumentException _
                               #{(:v1 c1)}))
-                   m (if (nil? (count-map s)) {:cnt 0 :eid '() :naive-cnt 0} (count-map s))]
+                   m (if (nil? (count-map s)) {:cnt 0 :eid (quote '()) :naive-cnt 0} (count-map s))]
                (assoc count-map s (inc-count-map c1 c2 m)))
              (rest combos))
       count-map)))
