@@ -3,8 +3,8 @@
         [clojure.pprint :only [pprint]])
   (:require [clojure.contrib.duck-streams :only [file-str append-writer] :as d]
             [clojure.contrib.command-line :as cl]
-            [hampshire-nlp.narrative-chains.parser :as p]
-            [hampshire-nlp.narrative-chains.coref :as c]
+            [hampshire-nlp.corpus-preprocessing.parser :as p]
+            [hampshire-nlp.corpus-preprocessing.coref :as c]
             [hampshire-nlp.narrative-chains.counting :as counting])
   (:import [java.io File]
            [edu.stanford.nlp.process DocumentPreprocessor]
@@ -107,7 +107,7 @@
      [debug? d? "Run through only one file for debugging."]
      etc]
 
-  (intern 'hampshire-nlp.narrative-chains.coref 'resource coref)
+  (intern 'hampshire-nlp.corpus-preprocessing.coref 'resource coref)
   (System/setProperty "WNSEARCHDIR" wordnet)
 
   (def conn (connect {:username "guest" :password "guest" 
