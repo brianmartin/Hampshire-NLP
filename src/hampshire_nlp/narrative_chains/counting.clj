@@ -1,4 +1,4 @@
-(ns narrative-chains.counting
+(ns hampshire-nlp.narrative-chains.counting
   (:use [clojure.contrib.combinatorics :only [combinations]]))
 
 (defn find-entity
@@ -86,34 +86,9 @@
                (let [key-in-? (first m2-keys)]
                  (if (nil? (m1 key-in-?))
                    m3
-                   (let [m1-val (m1 key-in-?)
-                         m2-val (m2 key-in-?)]
-                     (println m1-val m2-val (merge-two-values m1-val m2-val))
-                     (assoc m3 key-in-? (merge-two-values m1-val m2-val))))))
+                   (assoc m3 key-in-? (merge-two-values (m1 key-in-?) (m2 key-in-?))))))
         m3))))
 
 (defn merge-count-map-vector
   [count-map-vector]
   (reduce merge-two-count-maps count-map-vector))
-
-(defn make-count-map2
-  "Makes a map of counts of verbs sharing coreferring
-  arguments where the keys are hash-sets of the two verbs
-  (or one verb if two of the same verb co-occur)."
-  [parses]
-  (loop [count-map {}
-         combos (combinations (filter :eid parses) 2)]
-    (if (seq combos)
-      (recur (let [combo (first combos)
-                   [c1 c2] combo]
-               (if (= (:eid c1) (:eid c2))
-                 (let [s (try #{(:v1 c1) (:v1 c2) }
-                           (catch java.lang.IllegalArgumentException _
-                              #{(:v1 c1)}))
-                       cell (count-map s)]
-                    (if (nil? cell)
-                      (assoc count-map s 1)
-                      (assoc count-map s (inc cell))))
-                 count-map))
-             (rest combos))
-      count-map)))

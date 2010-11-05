@@ -1,4 +1,4 @@
-(ns narrative-chains.core
+(ns hampshire-nlp.narrative-chains.core
   (:use [rabbitcj.client]
         [clojure.pprint :only [pprint]])
   (:require [clojure.contrib.duck-streams :only [file-str append-writer] :as d]

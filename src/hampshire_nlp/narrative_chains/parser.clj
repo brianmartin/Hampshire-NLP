@@ -1,4 +1,4 @@
-(ns narrative-chains.parser
+(ns hampshire-nlp.narrative-chains.parser
   (:require [clojure.contrib.duck-streams :as d :only reader]
             [clojure.contrib.string :as string :only split-lines]
             [pl.danieljanus.tagsoup :only [parse] :as tagsoup])

@@ -1,4 +1,4 @@
-(ns narrative-chains.coref
+(ns hampshire-nlp.narrative-chains.coref
   (:import [java.util ArrayList Arrays]
            [opennlp.tools.coref DefaultLinker DiscourseEntity Linker LinkerMode]
            [opennlp.tools.coref.mention DefaultParse Mention MentionContext PTBMentionFinder]
