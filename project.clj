@@ -7,5 +7,5 @@
                  [org.clojars.adityo/clj-tagsoup "0.1.2"]
                  [clj-ssh "0.2.0-SNAPSHOT"]
                  [rabbitcj "0.1.0-SNAPSHOT"]]
-  :main hampshire-nlp.core
+  :main hampshire-nlp.corpus-preprocessing.core
   :java-opts ["-Xms3g" "-Xmx5G"])
