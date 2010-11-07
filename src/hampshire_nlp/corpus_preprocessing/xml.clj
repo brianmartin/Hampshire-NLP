@@ -29,10 +29,10 @@
   [dep-parses]
   (doall (for [p dep-parses]
     [:dep-parse {:dep    (:dep p)
-                 :word1    (:v1 p)
-                 :word2    (:v2 p)
-                 :word1-i  (:v1-i p)
-                 :word2-i  (:v2-i p)}])))
+                 :w1    (:v1 p)
+                 :w2    (:v2 p)
+                 :w1-i  (:v1-i p)
+                 :w2-i  (:v2-i p)}])))
 
 (defn sentences->xml
   [sentences dep-parses]
@@ -50,7 +50,7 @@
   (with-out-append-writer (File. parent file-name)
     (prxml [:doc {:id doc-id :type doc-type} 
              [:entity-table (entity-table->xml entity-table)]
-             [:sentences (sentences->xml sentences dep-parses)]])))
+             (sentences->xml sentences dep-parses)])))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; XML input
