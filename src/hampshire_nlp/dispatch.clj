@@ -19,4 +19,6 @@
     (bind-queue chan "nlp" "nlp" "")
     (doall (map #(publish chan "nlp" "" (.getCanonicalPath %)) files))))
 
-(defn get-msg [] (String. (.. chan (basicGet "nlp" true) (getBody))))
+(defn get-msg []
+  (try (String. (.. chan (basicGet "nlp" true) (getBody)))
+    (catch Exception _ nil)))

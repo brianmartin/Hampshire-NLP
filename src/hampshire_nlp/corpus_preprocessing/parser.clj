@@ -1,7 +1,6 @@
 (ns hampshire-nlp.corpus-preprocessing.parser
   (:require [clojure.contrib.duck-streams :as d :only reader]
-            [clojure.contrib.string :as string :only split-lines]
-            [pl.danieljanus.tagsoup :only [parse] :as tagsoup])
+            [clojure.contrib.string :as string :only split-lines])
   (:import  [java.io PrintWriter StringWriter StringReader]
             [edu.stanford.nlp.trees TreePrint]))
 
@@ -46,26 +45,6 @@
 ;(defn document-to-parses
 ; [document lp dp]
 ; (file-to-parses (StringReader. (:text document)) lp dp))
-
-;; Gigaword specific:
-
-(defn sgml->document
-  [sgml]
-  (let [id-and-type (second sgml) ;{:id "AFP_ENG_19940512.0004", :type "story"}
-        text-vec (first
-                   (filter #(not (nil? %))
-                     (for [e sgml]
-                       (if (vector? e)
-                         (if (= :TEXT (first e)) e)))))
-        text (. (apply str (for [p (drop 2 text-vec)] (nth p 2)))
-                (replace \newline \space))]
-    (assoc id-and-type :text text)))
-
-(defn gigaword->documents
-  "Given gigaword file path, gives vector of documents as maps with :type, :id, and :text."
-  [file]
-  (let [sgml-all (tagsoup/parse file)]
-    (map sgml->document (drop 3 sgml-all))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Conversions to Clojure data structures:

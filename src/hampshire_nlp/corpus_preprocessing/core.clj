@@ -15,14 +15,15 @@
   in the output-dir."
   [file lp dp charset output-dir]
   (let [parent (File. output-dir (.getName file))
-        documents (p/gigaword->documents file)]
+        documents (x/gigaword->documents file)]
     (.mkdir parent)
     (doseq [document documents]
       (let [sentences (p/document->sentences (StringReader. (:text document)) dp)
             parses (p/sentences->parses document lp)
             dep-parses (p/document-dep-strings->clj (p/parses->dep-strings parses))
             entity-table (p/entity-table->clj (c/process-parses (p/parses->treebank-strings parses)))]
-      (x/record-as-xml parent (str (.getName file) ".xml") sentences dep-parses entity-table)))))
+      (x/record-as-xml parent (str (.getName file) ".xml") (:id document) (:type document)
+                       sentences dep-parses entity-table)))))
 
 (defn process-one
   "Processes one file of of the queue."
@@ -44,7 +45,7 @@
           (process (File. msg) lp dp charset output-dir)
           (println "done " msg))
         (Thread/sleep 10000))
-      (recur (try (get-msg) (catch Exception _ nil))))))
+      (recur (get-msg)))))
 
 (defn -main [& args]
   "Parses files in an input directory, performs coref, and writes results
@@ -68,6 +69,7 @@
 
   (if job-dist?
     (dispatch-all-file-paths input-dir)
-    (if debug?
-      (process-one (file-str output-dir) grammar charset)
-      (start-worker (file-str output-dir) grammar charset)))))
+    (start-worker (file-str output-dir) grammar charset))
+
+  (if debug?
+    (process-one (file-str output-dir) grammar charset))))
