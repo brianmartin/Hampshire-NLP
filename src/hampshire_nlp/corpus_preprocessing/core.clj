@@ -47,19 +47,17 @@
         (Thread/sleep 10000))
       (recur (get-msg)))))
 
-(defn -main [& args]
+(defn run
   "Parses files in an input directory, performs coref, and writes results
   to the output directory in xml convenient for further processing."
-  (with-command-line args "Parse and Coref"
-    [[input-dir i "Folder containing input files." "~/test-data"]
-     [output-dir o "Destination folder for output files." "~/output-data"]
-     [charset c "Charset of input." "utf-8"]
-     [grammar g "Grammar file for Stanford Parser." "data/englishPCFG.ser.gz"]
-     [coref c "Coref data directory for OpenNLP." "data/coref"]
-     [wordnet w "Wordnet dir (for JWNL)" "data/wordnet"]
-     [job-dist? j? "Distributor of jobs?"]
-     [debug? d? "Run through only one file for debugging."]
-     etc]
+  [{input-dir :input-dir
+    output-dir :output-dir
+    charset :charset
+    grammar :grammar
+    coref :coref
+    wordnet :wordnet
+    job-dist? :job-dist?
+    debug? :debug?}]
 
   (intern 'hampshire-nlp.corpus-preprocessing.coref 'resource coref)
   (System/setProperty "WNSEARCHDIR" wordnet)
@@ -72,4 +70,4 @@
     (start-worker (file-str output-dir) grammar charset))
 
   (if debug?
-    (process-one (file-str output-dir) grammar charset))))
+    (process-one (file-str output-dir) grammar charset)))
