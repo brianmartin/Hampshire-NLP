@@ -46,14 +46,20 @@
     sentences dep-parses (range))))
 
 (defn record-as-xml
-  [parent file-name doc-id doc-type sentences dep-parses entity-table]
-  (with-out-append-writer (File. parent file-name)
+  [output-file doc-id doc-type sentences dep-parses entity-table]
+  (with-out-append-writer output-file
     (prxml [:doc {:id doc-id :type doc-type} 
              [:entity-table (entity-table->xml entity-table)]
              (sentences->xml sentences dep-parses)])))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; XML input
+
+;; Written using record-as-xml, above:
+
+(defn parse-hampshire-nlp-xml
+  [file]
+  (parse file))
 
 ;; Gigaword
 

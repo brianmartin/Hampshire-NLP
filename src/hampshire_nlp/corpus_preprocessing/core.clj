@@ -7,42 +7,38 @@
             [hampshire-nlp.corpus-preprocessing.xml :as x])
   (:import [java.io File StringReader]
            [edu.stanford.nlp.process DocumentPreprocessor]
-           [edu.stanford.nlp.parser.lexparser LexicalizedParser])
-  (:gen-class))
+           [edu.stanford.nlp.parser.lexparser LexicalizedParser]))
 
 (defn process
   "Does parsing and entity resolution on the file given and writes output to xml
   in the output-dir."
-  [file lp dp charset output-dir]
-  (let [parent (File. output-dir (.getName file))
-        documents (x/gigaword->documents file)]
-    (.mkdir parent)
-    (doseq [document documents]
-      (let [sentences (p/document->sentences (StringReader. (:text document)) dp)
-            parses (p/sentences->parses sentences lp)
-            dep-parses (p/document-dep-strings->clj (p/parses->dep-strings parses))
-            entity-table (p/entity-table->clj (c/process-parses (p/parses->treebank-strings parses)))]
-        (x/record-as-xml parent (str (.getName file) ".xml") (:id document) (:type document)
-                         sentences dep-parses entity-table)))))
+  [file lp dp output-dir]
+  (doseq [document (x/gigaword->documents file)]
+    (let [sentences (p/document->sentences (StringReader. (:text document)) dp)
+          parses (p/sentences->parses sentences lp)
+          dep-parses (p/document-dep-strings->clj (p/parses->dep-strings parses))
+          entity-table (p/entity-table->clj (c/process-parses (p/parses->treebank-strings parses)))]
+      (x/record-as-xml (File. output-dir (str (.getName file) ".xml"))
+                       (:id document) (:type document) sentences dep-parses entity-table))))
 
 (defn process-one
   "Processes one file of of the queue."
-  [output-dir grammar charset]
+  [output-dir grammar]
   (let [lp (LexicalizedParser. grammar)
         dp (DocumentPreprocessor.)
         msg (get-msg)]
     (if (not (nil? msg))
-      (process (File. msg) lp dp charset output-dir))))
+      (process (File. msg) lp dp output-dir))))
 
 (defn start-worker
   "Process files from the queue (if none, waits 10 seconds)."
-  [output-dir grammar charset]
+  [output-dir grammar]
   (let [lp (LexicalizedParser. grammar)
         dp (DocumentPreprocessor.)]
     (loop [msg (get-msg)]
       (if (not (nil? msg))
         (do
-          (process (File. msg) lp dp charset output-dir)
+          (process (File. msg) lp dp output-dir)
           (println "done " msg))
         (Thread/sleep 10000))
       (recur (get-msg)))))
@@ -52,7 +48,6 @@
   to the output directory in xml convenient for further processing."
   [{input-dir :input-dir
     output-dir :output-dir
-    charset :charset
     grammar :grammar
     coref :coref
     wordnet :wordnet
@@ -67,7 +62,7 @@
 
   (if job-dist?
     (dispatch-all-file-paths input-dir)
-    (start-worker (file-str output-dir) grammar charset))
+    (start-worker (file-str output-dir) grammar))
 
   (if debug?
-    (process-one (file-str output-dir) grammar charset)))
+    (process-one (file-str output-dir) grammar)))
