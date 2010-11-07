@@ -1,26 +1,31 @@
 (ns hampshire-nlp.narrative-chains.core
   (:use [hampshire-nlp.dispatch]
-        [hampshire-nlp.corpus-preprocessing.xml :as x]
+        [hampshire-nlp.narrative-chains.xml :as x]
         [hampshire-nlp.narrative-chains.counting :as c]
-        [clojure.contrib.duck-streams :only [file-str]])
+        [clojure.contrib.duck-streams :only [file-str]]
+        [clojure.xml])
   (:import [java.io File]))
+
+
+(def count-map-vector '())
 
 (defn process
   "Produces a count-map on the file given and writes output to xml
   in the output-dir."
   [file output-dir]
-  (let [parent (File. output-dir (.getName file))
-        input (x/parse-hampshire-nlp-xml file)]
-    (.mkdir parent)
-    (println (.getName file))
-    (println input)))
+  (let [documents (x/file->documents file)]
+    (doseq [document documents]
+      (let [entity-table (x/document->entity-table document)
+            parses (x/document->parses document)
+            entity-resolved-parses (c/count-occurences entity-table parses)]
+        (println parses)))))
+;        (def count-map-vector (conj count-map-vector (make-count-map entity-resolved-parses)))))))
 
 (defn process-one
   "Processes one file off of the queue."
   [output-dir]
   (let [msg (get-msg)]
     (if (not (nil? msg))
-      (println msg)
       (process (File. msg) output-dir))))
 
 (defn start-worker
