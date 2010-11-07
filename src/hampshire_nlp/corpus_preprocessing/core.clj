@@ -19,11 +19,11 @@
     (.mkdir parent)
     (doseq [document documents]
       (let [sentences (p/document->sentences (StringReader. (:text document)) dp)
-            parses (p/sentences->parses document lp)
+            parses (p/sentences->parses sentences lp)
             dep-parses (p/document-dep-strings->clj (p/parses->dep-strings parses))
             entity-table (p/entity-table->clj (c/process-parses (p/parses->treebank-strings parses)))]
-      (x/record-as-xml parent (str (.getName file) ".xml") (:id document) (:type document)
-                       sentences dep-parses entity-table)))))
+        (x/record-as-xml parent (str (.getName file) ".xml") (:id document) (:type document)
+                         sentences dep-parses entity-table)))))
 
 (defn process-one
   "Processes one file of of the queue."

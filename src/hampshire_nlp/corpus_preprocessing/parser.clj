@@ -42,10 +42,6 @@
   (for [s sentences]
     (do (. lp (parse s)) (. lp getBestParse))))
 
-;(defn document-to-parses
-; [document lp dp]
-; (file-to-parses (StringReader. (:text document)) lp dp))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Conversions to Clojure data structures:
 
