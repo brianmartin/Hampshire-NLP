@@ -1,5 +1,5 @@
 (ns hampshire-nlp.corpus-preprocessing.core
-  (:use [hampshire-nlp.dispatch]
+  (:use [hampshire-nlp.rabbitmq]
         [clojure.contrib.command-line]
         [clojure.contrib.duck-streams :only [file-str]])
   (:require [hampshire-nlp.corpus-preprocessing.parser :as p]

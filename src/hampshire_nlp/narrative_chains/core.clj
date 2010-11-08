@@ -1,11 +1,10 @@
 (ns hampshire-nlp.narrative-chains.core
-  (:use [hampshire-nlp.dispatch]
+  (:use [hampshire-nlp.rabbitmq]
         [hampshire-nlp.narrative-chains.xml :as x]
         [hampshire-nlp.narrative-chains.counting :as c]
         [clojure.contrib.duck-streams :only [file-str]]
         [clojure.xml])
   (:import [java.io File]))
-
 
 (def count-map-vector '())
 
