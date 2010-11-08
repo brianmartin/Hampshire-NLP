@@ -24,7 +24,6 @@
             (= (:dep p) "dobj"))
       (let [sid (:sid p)
             eid (find-entity (filter #(= (:sid %) sid) entity-table) (Integer. (:w2-i p)))]
-        (println sid eid)
         (if (nil? eid)
           p
           (assoc (assoc p :eid eid) :sid sid)))

@@ -16,9 +16,8 @@
       (let [entity-table (x/document->entity-table document)
             parses (x/document->parses document)
             entity-resolved-parses (c/count-occurences entity-table parses)]
-        (println entity-resolved-parses)
         (def count-map-vector (conj count-map-vector (make-count-map entity-resolved-parses))))))
-  (println count-map-vector))
+  (def merged-count-map-vector (merge-count-map-vector count-map-vector)))
 
 (defn process-one
   "Processes one file off of the queue."
