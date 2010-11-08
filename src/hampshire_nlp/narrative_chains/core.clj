@@ -2,6 +2,7 @@
   (:use [hampshire-nlp.rabbitmq]
         [hampshire-nlp.narrative-chains.xml :as x]
         [hampshire-nlp.narrative-chains.counting :as c]
+        [hampshire-nlp.narrative-chains.clustering :as cl]
         [clojure.contrib.duck-streams :only [file-str]])
   (:import [java.io File]))
 
@@ -17,7 +18,8 @@
             parses (x/document->parses document)
             entity-resolved-parses (c/count-occurences entity-table parses)]
         (def count-map-vector (conj count-map-vector (make-count-map entity-resolved-parses))))))
-  (def merged-count-map-vector (merge-count-map-vector count-map-vector)))
+  (def merged-count-map (merge-count-map-vector count-map-vector))
+  (def counts (cl/total-ind-and-pair-counts merged-count-map)))
 
 (defn process-one
   "Processes one file off of the queue."
