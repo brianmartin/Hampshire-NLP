@@ -26,9 +26,10 @@
               :phrase (:phrase e)}])))
 
 (defn sentence-dep-parses->xml
-  [dep-parses]
+  [dep-parses sid]
   (doall (for [p dep-parses]
-    [:dep-parse {:dep    (:dep p)
+    [:dep-parse {:dep   (:dep p)
+                 :sid   sid
                  :w1    (:v1 p)
                  :w2    (:v2 p)
                  :w1-i  (:v1-i p)
@@ -41,7 +42,7 @@
       #(let [s-array (to-array %)]
         [:sentence
           {:id (inc %3)}
-          [:parses (sentence-dep-parses->xml %2)]
+          [:parses (sentence-dep-parses->xml %2 (inc %3))]
           [:text (areduce s-array i ret (str "") (str ret (aget s-array i) \space))]])
     sentences dep-parses (range))))
 

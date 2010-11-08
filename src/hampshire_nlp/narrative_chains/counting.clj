@@ -5,45 +5,37 @@
   "Finds an entity given the entity table for a specific
   sentence and the index of the word in that sentence."
   [entity-table word-idx]
-  (first
-  (filter #(not (nil? %))
+  (first (filter #(not (nil? %))
     (for [e entity-table]
-      (if (<= (first (e :span))
+      (if (<= (e :begin)
               word-idx
-              (second (e :span)))
+              (e :end))
         (e :eid)
         nil)))))
-
-(defn count-occurences-per-sentence
-  "Adds sentence id's to the given dependency parses,
-  along with resolving the enitities given the entity table
-  of the document."
-  [entity-table parses sid]
-  (map #(assoc % :sid sid)
-    (for [dep parses]
-      (if (or (= (dep :dep) "agent")
-              (= (dep :dep) "iobj")
-              (= (dep :dep) "nsubj")
-              (= (dep :dep) "dobj"))
-        (assoc dep :eid (find-entity (filter #(= (:sid %) sid) entity-table)
-                                     (dep :v2-i)))
-        dep))))
 
 (defn count-occurences
   "Given the document-wide entity-table and parses,
   Returns the dep-parses with resolved entities."
   [entity-table parses]
-  (apply concat
-    (doall
-      (map #(count-occurences-per-sentence entity-table %1 (inc %2))
-           parses (range)))))
+  (for [p parses]
+    (if (or (= (:dep p) "agent")
+            (= (:dep p) "iobj")
+            (= (:dep p) "nsubj")
+            (= (:dep p) "dobj"))
+      (let [sid (:sid p)
+            eid (find-entity (filter #(= (:sid %) sid) entity-table) (Integer. (:w2-i p)))]
+        (println sid eid)
+        (if (nil? eid)
+          p
+          (assoc (assoc p :eid eid) :sid sid)))
+      p)))
 
 (defn inc-count-map
   [c1 c2 m]
   (let [same-eid
           (fn [x] (if (= (:eid c1) (:eid c2))
                      (assoc
-                       (assoc x :eid `(quote ~(conj (second (x :eid)) (:eid c1))))
+                       (assoc x :eid (conj (:eid x) (:eid c1)))
                        :cnt (inc (:cnt x)))
                      x))
         naive-cnt
@@ -59,20 +51,20 @@
     (if (seq combos)
       (recur (let [combo (first combos)
                    [c1 c2] combo
-                   s (try #{(:v1 c1) (:v1 c2)}
+                   s (try #{(:w1 c1) (:w1 c2)}
                        (catch java.lang.IllegalArgumentException _
-                              #{(:v1 c1)}))
-                   m (if (nil? (count-map s)) {:cnt 0 :eid (quote '()) :naive-cnt 0} (count-map s))]
+                              #{(:w1 c1)}))
+                   m (if (nil? (count-map s)) {:cnt 0 :eid '() :naive-cnt 0} (count-map s))]
                (assoc count-map s (inc-count-map c1 c2 m)))
              (rest combos))
       count-map)))
 
 (defn merge-two-values
-  [v1 v2]
-  (-> v1
-    (assoc :cnt (+ (:cnt v1) (:cnt v2)))
-    (assoc :eid (concat (:eid v1) (:eid v2)))
-    (assoc :naive-cnt (+ (:naive-cnt v1) (:naive-cnt v2)))))
+  [w1 w2]
+  (-> w1
+    (assoc :cnt (+ (:cnt w1) (:cnt w2)))
+    (assoc :eid (concat (:eid w1) (:eid w2)))
+    (assoc :naive-cnt (+ (:naive-cnt w1) (:naive-cnt w2)))))
 
 (defn merge-two-count-maps
   [map1 map2]

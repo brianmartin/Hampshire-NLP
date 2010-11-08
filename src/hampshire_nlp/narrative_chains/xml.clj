@@ -13,14 +13,15 @@
   [document]
   (let [zipper (z/xml-zip document)
         deps   (zf/xml-> zipper :sentence :parses :dep-parse (zf/attr :dep))
+        sids   (zf/xml-> zipper :sentence :parses :dep-parse (zf/attr :sid))
         w1s    (zf/xml-> zipper :sentence :parses :dep-parse (zf/attr :w1))
         w2s    (zf/xml-> zipper :sentence :parses :dep-parse (zf/attr :w2))
         w1-is  (zf/xml-> zipper :sentence :parses :dep-parse (zf/attr :w1-i))
         w2-is  (zf/xml-> zipper :sentence :parses :dep-parse (zf/attr :w2-i))]
     (filter #(not= nil %)
-      (map #(try {:dep % :w1 %2 :w2 %3 :w1-i (i %4) :w2-i (i %5)}
+      (map #(try {:dep % :sid (i %2) :w1 %3 :w2 %4 :w1-i (i %5) :w2-i (i %6)}
               (catch java.lang.NumberFormatException _ nil))
-           deps w1s w2s w1-is w2-is))))
+           deps sids w1s w2s w1-is w2-is))))
 
 (defn document->entity-table
   [document]
