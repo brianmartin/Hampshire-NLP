@@ -1,12 +1,17 @@
 (ns hampshire-nlp.narrative-chains.clustering)
 
-(defn total-count
+(defn total-pair-count
   [count-map]
   (apply + (for [e count-map] (:cnt (second e)))))
 
+(defn total-individual-count
+  ;TODO probably wrong
+  [count-map]
+  (* 2 (total-pair-count count-map)))
+
 (defn pair-totals
   [count-map]
-  (apply hash-map (flatten (filter #(not (zero? (second %))) (for [vp count-map] [(first vp) (:cnt (second vp))])))))
+  (into {} (for [[k v] count-map] [k (v :cnt)])))
 
 (defn individual-totals
   [count-map]
@@ -14,23 +19,27 @@
          ind-cnts {}]
     (if (seq verb-pairs)
       (recur (rest verb-pairs)
-             (let [vp (first verb-pairs)]
-               (if (not= 0 ((second vp) :cnt))
+             (let [vp (first verb-pairs)
+                   words (first vp)
+                   vp-cnt ((second vp) :cnt)]
+               (if (zero? vp-cnt)
+                 ind-cnts
                  (merge-with + ind-cnts 
-                   {(ffirst vp) 1}
-                   (if (= 2 (count (first verb-pairs)))
-                     {(second (first vp)) 1}
-                     {}))
-                 ind-cnts)))
+                   (cond (= 1 (count words)) {(first words) (* 2 vp-cnt)}
+                         (= 2 (count words)) {(first words) vp-cnt (second words) vp-cnt})))))
       ind-cnts)))
 
 (defn pair-probabilities
-  [count-map pair-cnts]
-  nil)
+  [count-map]
+  (let [pair-cnts (pair-totals count-map)
+        total (total-pair-count count-map)]
+    (into {} (for [[k v] pair-cnts] [k (/ v total)]))))
 
 (defn ind-probabilities
-  [count-map pair-cnts]
-  nil)
+  [count-map individual-totals]
+  (let [ind-cnts (individual-totals count-map)
+        total (total-individual-count count-map)]
+    (into {} (for [[k v] ind-cnts] [k (/ v total)]))))
 
 ;(defn add-pmi-to-map
 ; [word-set counts total individual-prob-map]
