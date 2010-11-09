@@ -19,7 +19,8 @@
             entity-resolved-parses (c/count-occurences entity-table parses)]
         (def count-map-vector (conj count-map-vector (make-count-map entity-resolved-parses))))))
   (def merged-count-map (merge-count-map-vector count-map-vector))
-  (def counts (cl/total-ind-and-pair-counts merged-count-map)))
+  (def counts {:ind (cl/individual-totals merged-count-map)
+               :pair (cl/pair-totals merged-count-map)}))
 
 (defn process-one
   "Processes one file off of the queue."

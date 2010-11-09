@@ -4,41 +4,33 @@
   [count-map]
   (apply + (for [e count-map] (:cnt (second e)))))
 
-(defn total-ind-and-pair-counts
+(defn pair-totals
   [count-map]
-  (let [total (total-count count-map)]
-    (loop [verb-pairs count-map
-           pair-cnts {}
-           ind-cnts {}]
-      (if (seq verb-pairs)
-        (let [verb-pair (first verb-pairs) ;here verb-pair is [#{"v1" "v2"} {:cnt 10}]
-              pair-cnt (pair-cnts (first verb-pair))
-              v1-cnt (ind-cnts (ffirst verb-pair))
-              v2-cnt (try (ind-cnts (second (first (verb-pair))))
-                       (catch java.lang.Exception _ :no-v2))]
-          (recur (rest verb-pairs)
-                 (if (not= 0 ((second verb-pair) :cnt))
-                   (if pair-cnt
-                     (assoc pair-cnts (first verb-pair) (+ pair-cnt ((second verb-pair) :cnt)))
-                     (assoc pair-cnts (first verb-pair) ((second verb-pair) :cnt)))
-                   pair-cnts)
-                 (if (not= 0 ((second verb-pair) :cnt))
-                   (-> ind-cnts
-                      (#(assoc % (ffirst verb-pair) (if v1-cnt 
-                                                     (+ v1-cnt ((second verb-pair) :cnt))
-                                                     ((second verb-pair) :cnt))))
-                      (#(if (= v2-cnt :no-v2) 
-                         %
-                         (assoc % (second (first verb-pair)) (if (number? v2-cnt)
-                                                               (+ v2-cnt ((second verb-pair) :cnt))
-                                                               ((second verb-pair) :cnt))))))
-                   ind-cnts)))
-        {:individual-verb-counts ind-cnts
-         :verb-pair-counts pair-cnts}))))
+  (apply hash-map (flatten (filter #(not (zero? (second %))) (for [vp count-map] [(first vp) (:cnt (second vp))])))))
 
-(defn joint-p
-  [count-map-entry total]
-  (assoc count-map-entry :joint-p (/ (:cnt count-map-entry) total)))
+(defn individual-totals
+  [count-map]
+  (loop [verb-pairs count-map
+         ind-cnts {}]
+    (if (seq verb-pairs)
+      (recur (rest verb-pairs)
+             (let [vp (first verb-pairs)]
+               (if (not= 0 ((second vp) :cnt))
+                 (merge-with + ind-cnts 
+                   {(ffirst vp) 1}
+                   (if (= 2 (count (first verb-pairs)))
+                     {(second (first vp)) 1}
+                     {}))
+                 ind-cnts)))
+      ind-cnts)))
+
+(defn pair-probabilities
+  [count-map pair-cnts]
+  nil)
+
+(defn ind-probabilities
+  [count-map pair-cnts]
+  nil)
 
 ;(defn add-pmi-to-map
 ; [word-set counts total individual-prob-map]
