@@ -1,20 +1,12 @@
 (ns hampshire-nlp.corpus-preprocessing.xml
   (:use [clojure.xml]
         [clojure.contrib.prxml]
-        [clojure.contrib.duck-streams :only [append-writer]]
+        [clojure.contrib.duck-streams :only [with-out-append-writer]]
         [hampshire-nlp.corpus-preprocessing.entity-resolution])
   (:import [java.io File]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; XML output
-
-(defmacro with-out-append-writer
-  "Opens a writer on f, binds it to *out*, and evalutes body.
-  Anything printed within body will be appended to f."
-  [f & body]
-  `(with-open [stream# (append-writer ~f)]
-     (binding [*out* stream#]
-       ~@body)))
 
 (defn entity-table->xml
   [entity-table]
