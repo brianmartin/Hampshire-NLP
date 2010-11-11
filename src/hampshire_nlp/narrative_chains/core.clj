@@ -19,8 +19,8 @@
             entity-resolved-parses (c/count-occurences entity-table parses)]
         (def count-map-vector (conj count-map-vector (make-count-map entity-resolved-parses))))))
   (def merged-count-map (merge-count-map-vector count-map-vector))
-  (def counts {:ind (cl/individual-totals merged-count-map)
-               :pair (cl/pair-totals merged-count-map)}))
+  (def pmi-map-data (cl/pmi-map merged-count-map))
+  (println (filter #(not= 0 (second %)) pmi-map-data)))
 
 (defn process-one
   "Processes one file off of the queue."

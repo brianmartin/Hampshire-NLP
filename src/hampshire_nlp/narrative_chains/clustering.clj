@@ -33,7 +33,8 @@
   [count-map]
   (let [pair-cnts (pair-totals count-map)
         total (total-pair-count count-map)]
-    (into {} (for [[k v] pair-cnts] [k (/ v total)]))))
+    (assoc (into {} (for [[k v] pair-cnts] [k (/ v total)]))
+           :total total)))
 
 (defn ind-probabilities
   [count-map individual-totals]
@@ -41,23 +42,7 @@
         total (total-individual-count count-map)]
     (into {} (for [[k v] ind-cnts] [k (/ v total)]))))
 
-;(defn add-pmi-to-map
-; [word-set counts total individual-prob-map]
-; (if (= (count word-set) 2)
-;   (let [v1 (first word-set)
-;         v2 (second word-set)]
-
-
-;(defn pmi->map
-; [count-map]
-; (let [ind-and-pair-totals (total-ind-and-pair-counts count-map)
-;       pair-probs (pair-probabilites count-map (:pair ind-and-pair-totals))
-;       individual-probs (individual-probabilities count-map (:ind ind-and-pair-totals))]
-;   (loop [ks (keys count-map)
-;          pmi-map {}]
-;     (if (seq ks)
-;       (recur (rest ks)
-;              (let [k (first ks)
-;                    entry (k count-map)]
-;                (add-pmi-to-map k entry pair-probs individual-probs)))
-;       pmi-map))))
+(defn pmi-map
+  [count-map]
+    (let [pair-probs (pair-probabilities count-map)]
+      (into {} (for [[k v] pair-probs] [k (/ v (:total pair-probs))]))))
