@@ -44,5 +44,5 @@
 
 (defn pmi-map
   [count-map]
-    (let [pair-probs (pair-probabilities count-map)]
-      (into {} (for [[k v] pair-probs] [k (/ v (:total pair-probs))]))))
+  (let [pair-probs (pair-probabilities count-map)]
+    (into {} (for [[k v] pair-probs] [k (/ v (:total pair-probs))]))))
