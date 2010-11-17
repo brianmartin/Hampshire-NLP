@@ -7,11 +7,8 @@
   [entity-table word-idx]
   (first (filter #(not (nil? %))
     (for [e entity-table]
-      (if (<= (e :begin)
-              word-idx
-              (e :end))
-        (e :eid)
-        nil)))))
+      (if (<= (e :begin) word-idx (e :end))
+        (e :eid))))))
 
 (defn count-occurences
   "Given the document-wide entity-table and parses,
@@ -25,10 +22,7 @@
       (let [eid (find-entity (filter #(= (:sid %) (:sid p)) entity-table) (Integer. (:w2-i p)))]
         (if (nil? eid)
           p
-          (-> p
-            (assoc :eid (:eid p))
-            (assoc :sid (:sid p))
-            (assoc :dep (:dep p)))))
+          (assoc p :eid eid)))
       p)))
 
 (defn inc-count-map
@@ -66,17 +60,17 @@
   depending on the passed key-type keyword.  It can take the values :word,
   :word-pair, or :word-pair-and-dep."
   [parses key-type]
-  (let [make-key (cond (= key-type :word) (fn [a b] nil)
-                       (= key-type :word-pair) make-count-map-key-pair
-                       (= key-type :word-pair-and-dep) make-count-map-key-pair-and-dep)]
-    (if (= key-type :word)
-      nil ;TODO
-      (loop [count-map {}
-             combos (combinations (filter :eid parses) 2)]
-        (if (seq combos)
-          (recur (make-key count-map (first combos))
-                 (rest combos))
-          count-map)))))
+ (let [make-key (cond (= key-type :word) (fn [a b] nil)
+                      (= key-type :word-pair) make-count-map-key-pair
+                      (= key-type :word-pair-and-dep) make-count-map-key-pair-and-dep)]
+   (if (= key-type :word)
+     nil ;TODO
+     (loop [count-map {}
+            combos (combinations (filter :eid parses) 2)]
+       (if (seq combos)
+         (recur (make-key count-map (first combos))
+                (rest combos))
+         count-map)))))
 
 (defn merge-two-values
   [w1 w2]

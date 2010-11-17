@@ -17,10 +17,9 @@
       (let [entity-table (x/document->entity-table document)
             parses (x/document->parses document)
             entity-resolved-parses (c/count-occurences entity-table parses)]
-        (def count-map-vector (conj count-map-vector (make-count-map entity-resolved-parses))))))
+        (def count-map-vector (conj count-map-vector (make-count-map entity-resolved-parses :word-pair-and-dep))))))
   (def merged-count-map (merge-count-map-vector count-map-vector))
-  (def pmi-map-data (cl/pmi-map merged-count-map))
-  (println (filter #(not= 0 (second %)) pmi-map-data)))
+  (def pmi-map-data (cl/pmi-map merged-count-map)))
 
 (defn process-one
   "Processes one file off of the queue."
