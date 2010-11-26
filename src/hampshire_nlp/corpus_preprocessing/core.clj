@@ -52,13 +52,17 @@
     coref :coref
     wordnet :wordnet
     job-dist? :job-dist?
+    host :host
+    user :user
+    pass :pass
+    port :port
     debug? :debug?}]
 
   (intern 'hampshire-nlp.corpus-preprocessing.coref 'resource coref)
   (System/setProperty "WNSEARCHDIR" wordnet)
 
-  (init-connection {:username "guest" :password "guest"
-                    :virtual-host "/" :host "127.0.0.1" :port 5672})
+  (init-connection {:username user :password pass
+                    :virtual-host "/" :host host :port port})
 
   (if job-dist?
     (dispatch-all-file-paths input-dir)

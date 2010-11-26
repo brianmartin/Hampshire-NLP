@@ -18,6 +18,9 @@
      [coref c "Coref data directory for OpenNLP." "data/coref"]
      [wordnet w "Wordnet dir (for JWNL)" "data/wordnet"]
      [job-dist? j? "Distributor of jobs?"]
+     [host h "RabbitMQ hostname." "127.0.0.1"]
+     [user u "RabbitMQ username." "guest"]
+     [pass w "RabbitMQ password." "guest"]
      [debug? d? "Run through only one file for debugging."]
      etc]
 
@@ -25,7 +28,8 @@
                    :output-dir (cond corpus-preprocessing? processed-corpus-dir
                                      narrative-chains? narr-chains-output-dir
                                      relation-extraction? relation-ext-output-dir)
-                   :grammar grammar :coref coref :wordnet wordnet :job-dist? job-dist? :debug? debug?}]
+                   :grammar grammar :coref coref :wordnet wordnet :job-dist? job-dist? :debug? debug?
+                   :host host :user user :pass pass :port 5672}]
       (cond corpus-preprocessing? (corp/run arg-map)
             narrative-chains?     (narr/run arg-map)
             ;relation-extraction? (rela/run arg-map)
