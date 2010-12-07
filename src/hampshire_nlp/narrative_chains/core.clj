@@ -6,20 +6,18 @@
         [clojure.contrib.duck-streams :only [file-str]])
   (:import [java.io File]))
 
-(def count-map-vector '())
-
 (defn process
   "Produces a count-map on the file given and writes output to xml
   in the output-dir."
   [file output-dir]
-  (let [documents (x/file->documents file)]
+  (let [documents (x/file->documents file)
+        merged-count-map (atom {})]
     (doseq [document documents]
       (let [entity-table (x/document->entity-table document)
             parses (x/document->parses document)
             entity-resolved-parses (c/count-occurences entity-table parses)]
-        (def count-map-vector (conj count-map-vector (make-count-map entity-resolved-parses :word-pair-and-dep))))))
-  (def merged-count-map (merge-count-map-vector count-map-vector))
-  (def pmi-map-data (cl/pmi-map merged-count-map)))
+        (reset! merged-count-map (merge-two-count-maps @merged-count-map (make-count-map entity-resolved-parses :word-pair))))) ;word-pair-and-dep
+    (println (filter #(not= 0 (second %)) (cl/pmi-map @merged-count-map)))))
 
 (defn process-one
   "Processes one file off of the queue."
@@ -42,13 +40,12 @@
 (defn run
   "Parses files in an input directory, performs coref, and writes results
   to the output directory in xml convenient for further processing."
-  [{input-dir :input-dir
-    output-dir :output-dir
-    job-dist? :job-dist?
-    debug? :debug?}]
+  [{input-dir :input-dir output-dir :output-dir
+    job-dist? :job-dist?  debug? :debug?
+    host :host user :user pass :pass port :port}]
 
-  (init-connection {:username "guest" :password "guest"
-                    :virtual-host "/" :host "127.0.0.1" :port 5672})
+  (init-connection {:username user :password pass
+                    :virtual-host "/" :host host :port port})
 
   (if job-dist?
     (dispatch-all-file-paths input-dir)
