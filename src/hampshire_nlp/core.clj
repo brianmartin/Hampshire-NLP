@@ -24,6 +24,8 @@
      [debug? d? "Run through only one file for debugging."]
      etc]
 
+    (intern 'clojure.contrib.prxml '*prxml-indent* 2)
+
     (let [arg-map {:input-dir (if corpus-preprocessing? raw-corpus-dir processed-corpus-dir)
                    :output-dir (cond corpus-preprocessing? processed-corpus-dir
                                      narrative-chains? narr-chains-output-dir

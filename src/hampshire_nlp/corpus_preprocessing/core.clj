@@ -14,12 +14,13 @@
   in the output-dir."
   [file lp dp output-dir]
   (doseq [document (x/gigaword->documents file)]
-    (let [sentences (p/document->sentences (StringReader. (:text document)) dp)
-          parses (p/sentences->parses sentences lp)
-          dep-parses (p/document-dep-strings->clj (p/parses->dep-strings parses))
-          entity-table (p/entity-table->clj (c/process-parses (p/parses->treebank-strings parses)))]
-      (x/record-as-xml (File. output-dir (str (.getName file) ".xml"))
-                       (:id document) (:type document) sentences dep-parses entity-table))))
+    (if (= "story" (:type document))
+      (let [sentences (p/document->sentences (StringReader. (:text document)) dp)
+            parses (p/sentences->parses sentences lp)
+            dep-parses (p/document-dep-strings->clj (p/parses->dep-strings parses))
+            entity-table (p/entity-table->clj (c/process-parses (p/parses->treebank-strings parses)))]
+        (x/record-as-xml (File. output-dir (str (.getName file) ".xml"))
+                         (:id document) (:type document) sentences dep-parses entity-table)))))
 
 (defn process-one
   "Processes one file of of the queue."
