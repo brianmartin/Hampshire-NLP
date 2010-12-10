@@ -16,8 +16,8 @@
       (let [entity-table (x/document->entity-table document)
             parses (x/document->parses document)
             entity-resolved-parses (c/count-occurences entity-table parses)]
-        (reset! merged-count-map (merge-two-count-maps @merged-count-map (make-count-map entity-resolved-parses :word-pair))))) ;word-pair-and-dep
-    (println (filter #(not= 0 (second %)) (cl/pmi-map @merged-count-map)))))
+        (reset! merged-count-map (merge-two-count-maps @merged-count-map (make-count-map entity-resolved-parses :word-pair-and-dep))))) ;word-pair-and-dep
+    (pprint (filter #(not= (Double/NEGATIVE_INFINITY) (second %)) (cl/pmi-map @merged-count-map)))))
 
 (defn process-one
   "Processes one file off of the queue."
