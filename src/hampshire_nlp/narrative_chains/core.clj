@@ -3,21 +3,21 @@
         [hampshire-nlp.narrative-chains.xml :as x]
         [hampshire-nlp.narrative-chains.counting :as c]
         [hampshire-nlp.narrative-chains.clustering :as cl]
-        [clojure.contrib.duck-streams :only [file-str]])
+        [clojure.contrib.duck-streams :only [file-str]]
+        [clojure.contrib.pprint])
   (:import [java.io File]))
 
 (defn process
   "Produces a count-map on the file given and writes output to xml
   in the output-dir."
   [file output-dir]
-  (let [documents (x/file->documents file)
-        merged-count-map (atom {})]
-    (doseq [document documents]
+  (let [merged-count-map (atom {})]
+    (doseq [document (x/file->documents file)]
       (let [entity-table (x/document->entity-table document)
             parses (x/document->parses document)
             entity-resolved-parses (c/count-occurences entity-table parses)]
-        (reset! merged-count-map (merge-two-count-maps @merged-count-map (make-count-map entity-resolved-parses :word-pair-and-dep))))) ;word-pair-and-dep
-    (pprint (filter #(not= (Double/NEGATIVE_INFINITY) (second %)) (cl/pmi-map @merged-count-map)))))
+        (reset! merged-count-map (filter #(not= 0 (second %)) (merge-two-count-maps @merged-count-map (make-count-map entity-resolved-parses :word-pair-and-dep))))))
+    (pprint @merged-count-map)))
 
 (defn process-one
   "Processes one file off of the queue."

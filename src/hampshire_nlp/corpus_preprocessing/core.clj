@@ -25,11 +25,12 @@
 (defn process-one
   "Processes one file of of the queue."
   [output-dir grammar]
-  (let [lp (LexicalizedParser. grammar)
-        dp (DocumentPreprocessor.)
-        msg (get-msg)]
+  (let [msg (get-msg)]
     (if (not (nil? msg))
-      (do
+      (let [lp (LexicalizedParser. grammar)
+            _ (. lp setOptionFlags (into-array ["-maxLength" "80"]))
+            dp (DocumentPreprocessor.)]
+        (println msg)
         (process (File. msg) lp dp output-dir)
         (println "done " msg)))))
 
