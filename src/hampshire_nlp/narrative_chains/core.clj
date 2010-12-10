@@ -27,15 +27,11 @@
       (process (File. msg) output-dir))))
 
 (defn start-worker
-  "Process files from the queue (if none, waits 10 seconds)."
+  "Process files from the queue (if none, waits 5 seconds, recheck... forever)."
   [output-dir]
-  (loop [msg (get-msg)]
-    (if (not (nil? msg))
-      (do
-        (process (File. msg) output-dir)
-        (println "done " msg))
-      (Thread/sleep 10000))
-    (recur (get-msg))))
+  (while true
+    (process-one output-dir)
+    (Thread/sleep 5000)))
 
 (defn run
   "Parses files in an input directory, performs coref, and writes results

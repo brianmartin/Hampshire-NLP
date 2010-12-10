@@ -35,7 +35,7 @@
         [:sentence
           {:id (inc %3)}
           [:parses (sentence-dep-parses->xml %2 (inc %3))]
-          [:text (areduce s-array i ret (str "") (str ret (aget s-array i) \space))]])
+          [:text [:raw! (areduce s-array i ret (str "") (str ret (aget s-array i) \space))]]])
     sentences dep-parses (range))))
 
 (defn record-as-xml
@@ -47,8 +47,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; XML input
-
-;; Written using record-as-xml, above:
+;; (For files written using record-as-xml)
 
 (defn parse-hampshire-nlp-xml
   [file]
