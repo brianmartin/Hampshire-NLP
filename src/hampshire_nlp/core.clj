@@ -33,4 +33,5 @@
       (cond corpus-preprocessing? (corp/run arg-map)
             narrative-chains?     (narr/run arg-map)
             ;relation-extraction? (rela/run arg-map)
-            :else (System/exit 0)))))
+            :else nil)))
+    (System/exit 0))
