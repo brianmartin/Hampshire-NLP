@@ -28,7 +28,7 @@
   (let [msg (get-msg)]
     (if msg
       (let [lp (LexicalizedParser. grammar)
-            _ (. lp setMaxLength 80)
+            _ (. lp setMaxLength 100)
             dp (DocumentPreprocessor.)]
         (println msg)
         (process (File. msg) lp dp output-dir)
