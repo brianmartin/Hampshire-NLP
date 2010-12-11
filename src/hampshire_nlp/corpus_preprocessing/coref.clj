@@ -9,17 +9,12 @@
 
 (defn word-index
   "Given text and character index, returns word index."
+  ;TODO: optimize
   [text idx]
   (->> text (take idx)
             (filter #(= \space %))
             (count)
             (inc)))
-
-(defn- table-format
-  "Formats information for placing into the entity-table."
-  [sid phrase span text eid]
-  (apply str (interpose \space (list
-    sid eid (word-index text (. span getStart)) (word-index text (. span getEnd)) phrase))))
 
 (defn- show-entities
   "Returns a string of the entity-table given mentions, a linker, and the text.
@@ -28,16 +23,20 @@
   (try
     (let [mentions (. all-extents toArray (make-array Mention (. all-extents size)))
           entities (. linker getEntities mentions)
-          entity-table (StringBuilder.)]
+          entity-table (atom [])]
       (dotimes [i (alength entities)]
         (let [e (aget entities i)
               iter (. e getMentions)]
           (while (. iter hasNext)
             (let [mc (. iter next)
-                  s-num (. mc getSentenceNumber)]
-              (. entity-table append (str (table-format s-num (. mc toText)
-                                            (. mc getSpan) (nth sentences (dec s-num)) i) "\n"))))))
-      (. entity-table toString))
+                  sid (. mc getSentenceNumber)
+                  phrase (. mc toText)
+                  text (nth sentences (dec sid))
+                  mc-span (. mc getSpan)
+                  span [(word-index text (. mc-span getStart))
+                        (word-index text (. mc-span getEnd))]]
+              (reset! entity-table (conj @entity-table {:sid sid :eid i :phrase phrase :span span}))))))
+      (@entity-table))
   (catch java.lang.Exception _ nil)))
 
 (defn process-parses
