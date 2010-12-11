@@ -15,12 +15,14 @@
   [file lp dp output-dir]
   (doseq [document (x/gigaword->documents file)]
     (if (= "story" (:type document))
-      (let [sentences (p/document->sentences (StringReader. (:text document)) dp)
-            parses (p/sentences->parses sentences lp)
-            dep-parses (p/document-dep-strings->clj (p/parses->dep-strings parses))
-            entity-table (p/entity-table->clj (c/process-parses (p/parses->treebank-strings parses)))]
-        (x/record-as-xml (File. output-dir (str (.getName file) ".xml"))
-                         (:id document) (:type document) sentences dep-parses entity-table)))))
+      (try
+        (let [sentences (p/document->sentences (StringReader. (:text document)) dp)
+              parses (p/sentences->parses sentences lp)
+              dep-parses (p/document-dep-strings->clj (p/parses->dep-strings parses))
+              entity-table (c/process-parses (p/parses->treebank-strings parses))]
+          (x/record-as-xml (File. output-dir (str (.getName file) ".xml"))
+                           (:id document) (:type document) sentences dep-parses entity-table))
+        (catch java.lang.Exception _ (println "Exception thrown, skipping document " (:id document)))))))
 
 (defn process-off-queue
   "Processes one file of of the queue."
