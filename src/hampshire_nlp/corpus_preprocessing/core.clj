@@ -22,13 +22,13 @@
         (x/record-as-xml (File. output-dir (str (.getName file) ".xml"))
                          (:id document) (:type document) sentences dep-parses entity-table)))))
 
-(defn process-one
+(defn process-off-queue
   "Processes one file of of the queue."
   [output-dir grammar]
   (let [msg (get-msg)]
-    (if (not (nil? msg))
+    (if msg
       (let [lp (LexicalizedParser. grammar)
-            _ (. lp setOptionFlags (into-array ["-maxLength" "80"]))
+            _ (. lp setMaxLength 80)
             dp (DocumentPreprocessor.)]
         (println msg)
         (process (File. msg) lp dp output-dir)
@@ -38,7 +38,7 @@
   "Process files from the queue (if none, waits 5 seconds, recheck,... forever)."
   [output-dir grammar]
   (while true
-    (process-one output-dir grammar)
+    (process-off-queue output-dir grammar)
     (Thread/sleep 5000)))
 
 (defn run
@@ -67,4 +67,4 @@
     (start-worker (file-str output-dir) grammar))
 
   (if debug?
-    (process-one (file-str output-dir) grammar)))
+    (process-off-queue (file-str output-dir) grammar)))

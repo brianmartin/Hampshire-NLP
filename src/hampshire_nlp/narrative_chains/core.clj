@@ -19,7 +19,7 @@
         (reset! merged-count-map (filter #(not= 0 (second %)) (merge-two-count-maps @merged-count-map (make-count-map entity-resolved-parses :word-pair-and-dep))))))
     (pprint @merged-count-map)))
 
-(defn process-one
+(defn process-off-queue
   "Processes one file off of the queue."
   [output-dir]
   (let [msg (get-msg)]
@@ -30,7 +30,7 @@
   "Process files from the queue (if none, waits 5 seconds, recheck... forever)."
   [output-dir]
   (while true
-    (process-one output-dir)
+    (process-off-queue output-dir)
     (Thread/sleep 5000)))
 
 (defn run
@@ -48,4 +48,4 @@
     (start-worker (file-str output-dir)))
 
   (if debug?
-    (process-one (file-str output-dir))))
+    (process-off-queue (file-str output-dir))))

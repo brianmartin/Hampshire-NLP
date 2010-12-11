@@ -27,16 +27,18 @@
                  :w1-i  (:v1-i p)
                  :w2-i  (:v2-i p)}])))
 
+(defn sentence->xml
+  [sentence dep-parse index]
+  (let [s-array (to-array sentence)]
+    [:sentence
+      {:id index}
+      [:parses (sentence-dep-parses->xml dep-parse index)]
+      [:text [:raw! (areduce s-array i ret (str "") (str ret (aget s-array i) \space))]]]))
+
 (defn sentences->xml
   [sentences dep-parses]
   (doall
-    (map
-      #(let [s-array (to-array %)]
-        [:sentence
-          {:id (inc %3)}
-          [:parses (sentence-dep-parses->xml %2 (inc %3))]
-          [:text [:raw! (areduce s-array i ret (str "") (str ret (aget s-array i) \space))]]])
-    sentences dep-parses (range))))
+    (map sentence->xml sentences dep-parses (map inc (range)))))
 
 (defn record-as-xml
   [output-file doc-id doc-type sentences dep-parses entity-table]
