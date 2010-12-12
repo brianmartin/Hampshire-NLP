@@ -9,12 +9,18 @@
 
 (defn word-index
   "Given text and character index, returns word index."
-  ;TODO: optimize
   [text idx]
   (->> text (take idx)
             (filter #(= \space %))
             (count)
             (inc)))
+
+(defn word-span
+  "Given text and character span, returns word span."
+  [text span]
+  (let [begin-word (word-index text (first span))
+        end-word (+ begin-word (word-index (drop (first span) text) (- (second span) (first span))))]
+    [begin-word end-word]))
 
 (defn- show-entities
   "Returns a string of the entity-table given mentions, a linker, and the text.
@@ -33,8 +39,7 @@
                   phrase (. mc toText)
                   text (nth sentences (dec sid))
                   mc-span (. mc getSpan)
-                  span [(word-index text (. mc-span getStart))
-                        (word-index text (. mc-span getEnd))]]
+                  span (word-span text (. mc-span getStart) (. mc-span getEnd))]
               (reset! entity-table (conj @entity-table {:sid sid :eid i :phrase phrase :span span}))))))
       (@entity-table))
   (catch java.lang.Exception _ nil)))
