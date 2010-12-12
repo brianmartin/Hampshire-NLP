@@ -11,13 +11,19 @@
   "Produces a count-map on the file given and writes output to xml
   in the output-dir."
   [file output-dir]
-  (let [merged-count-map (atom {})]
+  (println (.getName file))
+  (let [merged-count-map (atom {})
+        total (atom 0)
+        count-method :word-pair]
     (doseq [document (x/file->documents file)]
       (let [entity-table (x/document->entity-table document)
             parses (x/document->parses document)
-            entity-resolved-parses (c/count-occurences entity-table parses)]
-        (reset! merged-count-map (filter #(not= 0 (second %)) (merge-two-count-maps @merged-count-map (make-count-map entity-resolved-parses :word-pair-and-dep))))))
-    (pprint @merged-count-map)))
+            entity-resolved-parses (c/count-occurences entity-table parses)
+            count-map (make-count-map entity-resolved-parses count-method)
+            single-total (cl/total-pair-count count-map)]
+        (reset! merged-count-map (merge-two-count-maps @merged-count-map count-map))
+        (reset! total (+ single-total @total))))
+    (x/record-count-map-as-xml (File. output-dir (str (.getName file) "_count_map.xml")) (.getName file) @merged-count-map @total count-method)))
 
 (defn process-off-queue
   "Processes one file off of the queue."
