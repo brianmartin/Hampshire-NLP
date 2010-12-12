@@ -39,10 +39,10 @@
                   phrase (. mc toText)
                   text (nth sentences (dec sid))
                   mc-span (. mc getSpan)
-                  span (word-span text (. mc-span getStart) (. mc-span getEnd))]
+                  span (word-span text [(. mc-span getStart) (. mc-span getEnd)])]
               (reset! entity-table (conj @entity-table {:sid sid :eid i :phrase phrase :span span}))))))
-      (@entity-table))
-  (catch java.lang.Exception _ nil)))
+      @entity-table)
+    (catch java.lang.Exception e (println "Coref, show-entities exception: " e))))
 
 (defn process-parses
   "Gets mentions from the parses and puts them into a string representation of an entity table."
