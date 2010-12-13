@@ -40,6 +40,7 @@
                    :count-method (keyword narr-chains-count-method) :mega-merge? narrative-chains-mega-merge?
                    :grammar grammar :coref coref :wordnet wordnet :job-dist? job-dist? :debug? debug?
                    :host host :user user :pass pass :port 5672}]
+
       (if log-dir
         (with-out-writer (file-str (str log-dir "/" (.. java.net.InetAddress getLocalHost getHostName) "_"
                                                      (System/currentTimeMillis)))

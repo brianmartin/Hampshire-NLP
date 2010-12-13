@@ -1,30 +1,25 @@
 (ns hampshire-nlp.narrative-chains.xml
-  (:use [clojure.xml :as x]
-        [clojure.zip :as z]
-        [clojure.contrib.zip-filter.xml :as zf]
+  (:use [clojure.xml :only [parse]]
+        [clojure.zip :only [xml-zip]]
+        [clojure.contrib.zip-filter.xml :only [xml-> attr]]
         [clojure.contrib.prxml]
         [clojure.contrib.duck-streams :only [with-out-append-writer]]))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; XML -> clojure data
-
-;; preprocessed-corpus -> XML
 
 (defn i [s] (Integer. s))
 
 (defn file->documents
   [file]
-  (:content (x/parse file)))
+  (:content (parse file)))
 
 (defn document->parses
   [document]
-  (let [zipper (z/xml-zip document)
-        deps   (zf/xml-> zipper :sentence :parses :dep-parse (zf/attr :dep))
-        sids   (zf/xml-> zipper :sentence :parses :dep-parse (zf/attr :sid))
-        w1s    (zf/xml-> zipper :sentence :parses :dep-parse (zf/attr :w1))
-        w2s    (zf/xml-> zipper :sentence :parses :dep-parse (zf/attr :w2))
-        w1-is  (zf/xml-> zipper :sentence :parses :dep-parse (zf/attr :w1-i))
-        w2-is  (zf/xml-> zipper :sentence :parses :dep-parse (zf/attr :w2-i))]
+  (let [zipper (xml-zip document)
+        deps   (xml-> zipper :sentence :parses :dep-parse (attr :dep))
+        sids   (xml-> zipper :sentence :parses :dep-parse (attr :sid))
+        w1s    (xml-> zipper :sentence :parses :dep-parse (attr :w1))
+        w2s    (xml-> zipper :sentence :parses :dep-parse (attr :w2))
+        w1-is  (xml-> zipper :sentence :parses :dep-parse (attr :w1-i))
+        w2-is  (xml-> zipper :sentence :parses :dep-parse (attr :w2-i))]
     (filter #(not= nil %)
       (map #(try {:dep % :sid (i %2) :w1 %3 :w2 %4 :w1-i (i %5) :w2-i (i %6)}
               (catch java.lang.NumberFormatException _ nil))
@@ -32,19 +27,18 @@
 
 (defn document->entity-table
   [document]
-  (let [zipper (z/xml-zip document)
-        sids   (zf/xml-> zipper :entity-table :entity (zf/attr :sid))
-        eids   (zf/xml-> zipper :entity-table :entity (zf/attr :eid))
-        begins (zf/xml-> zipper :entity-table :entity (zf/attr :begin))
-        ends   (zf/xml-> zipper :entity-table :entity (zf/attr :end))]
-    (filter #(not= nil %) 
+  (let [zipper (xml-zip document)
+        sids   (xml-> zipper :entity-table :entity (attr :sid))
+        eids   (xml-> zipper :entity-table :entity (attr :eid))
+        begins (xml-> zipper :entity-table :entity (attr :begin))
+        ends   (xml-> zipper :entity-table :entity (attr :end))]
+    (filter #(not= nil %)
       (map #(try {:sid (i %) :eid (i %2) :begin (i %3) :end (i %4)}
               (catch java.lang.NumberFormatException _ nil))
            sids eids begins ends))))
 
-;; count-map
 (defn xml->counts [file]
-  (let [data  (:content (x/parse file))
+  (let [data  (:content (parse file))
         total (i (.trim (first (:content (first data)))))
         counts (map :attrs (:content (second data)))]
      (into {}
@@ -54,9 +48,6 @@
             {:cnt (i (:cnt c))}]
            [[{:word (:w1 c) :dep (:w1-dep c)}]
             {:cnt (i (:cnt c))}])))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; clojure data -> XML
 
 (defn counts->xml
   [count-map method]
