@@ -6,7 +6,9 @@
         [clojure.contrib.duck-streams :only [with-out-append-writer]]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Pre-processed XML -> clojure data
+;; XML -> clojure data
+
+;; preprocessed-corpus -> XML
 
 (defn i [s] (Integer. s))
 
@@ -31,15 +33,27 @@
 (defn document->entity-table
   [document]
   (let [zipper (z/xml-zip document)
-        sids     (zf/xml-> zipper :entity-table :entity (zf/attr :sid))
-        eids     (zf/xml-> zipper :entity-table :entity (zf/attr :eid))
-        begins   (zf/xml-> zipper :entity-table :entity (zf/attr :begin))
-        ends     (zf/xml-> zipper :entity-table :entity (zf/attr :end))]
+        sids   (zf/xml-> zipper :entity-table :entity (zf/attr :sid))
+        eids   (zf/xml-> zipper :entity-table :entity (zf/attr :eid))
+        begins (zf/xml-> zipper :entity-table :entity (zf/attr :begin))
+        ends   (zf/xml-> zipper :entity-table :entity (zf/attr :end))]
     (filter #(not= nil %) 
       (map #(try {:sid (i %) :eid (i %2) :begin (i %3) :end (i %4)}
               (catch java.lang.NumberFormatException _ nil))
            sids eids begins ends))))
 
+;; count-map
+(defn xml->counts [file]
+  (let [data  (:content (x/parse file))
+        total (i (.trim (first (:content (first data)))))
+        counts (map :attrs (:content (second data)))]
+     (into {}
+       (for [c counts]
+         (if (:w2 c)
+           [[{:word (:w1 c) :dep (:w1-dep c)} {:word (:w2 c) :dep (:w2-dep c)}]
+            {:cnt (i (:cnt c))}]
+           [[{:word (:w1 c) :dep (:w1-dep c)}]
+            {:cnt (i (:cnt c))}])))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; clojure data -> XML
@@ -54,13 +68,13 @@
                            :w2 (second words)
                            :cnt (:cnt (second cnt))}])))
           (= method :word-pair-and-dep)
-              (doall (for [cnt counts]
-                (let [words-and-deps (first cnt)]
+              (doall (for [c counts]
+                (let [words-and-deps (first c)]
                   [:count {:w1 (:word (first words-and-deps))
                            :w1-dep (:dep (first words-and-deps))
                            :w2 (:word (second words-and-deps))
                            :w2-dep (:dep (second words-and-deps))
-                           :cnt (:cnt (second cnt))}])))
+                           :cnt (:cnt (second c))}])))
           (= method :word) ;TODO
               nil)))
 

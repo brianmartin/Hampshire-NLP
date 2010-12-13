@@ -74,10 +74,9 @@
 
 (defn merge-two-values
   [w1 w2]
-  (-> w1
-    (assoc :cnt (+ (:cnt w1) (:cnt w2)))
-    (assoc :eid (concat (:eid w1) (:eid w2)))
-    (assoc :naive-cnt (+ (:naive-cnt w1) (:naive-cnt w2)))))
+  (let [eid-merge (fn [w] (if (:eid w1) (assoc w :eid (concat (:eid w1) (:eid w2))) w))
+        naive-cnt-merge (fn [w] (if (:naive-cnt w1) (assoc w :naive-cnt (+ (:naive-cnt w1) (:naive-cnt w2))) w))]
+    (naive-cnt-merge (eid-merge (assoc w1 :cnt (+ (:cnt w1) (:cnt w2)))))))
 
 (defn merge-two-count-maps
   [map1 map2]
