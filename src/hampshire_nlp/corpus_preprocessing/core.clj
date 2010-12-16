@@ -46,26 +46,19 @@
 (defn run
   "Parses files in an input directory, performs coref, and writes results
   to the output directory in xml convenient for further processing."
-  [{input-dir :input-dir
-    output-dir :output-dir
-    grammar :grammar
-    coref :coref
-    wordnet :wordnet
-    job-dist? :job-dist?
-    host :host
-    user :user
-    pass :pass
-    port :port
+  [{input-dir :input-dir output-dir :output-dir
+    grammar :grammar coref :coref wordnet :wordnet job-dist? :job-dist?
+    chan :chan host :host user :user pass :pass port :port
     debug? :debug?}]
 
   (intern 'hampshire-nlp.corpus-preprocessing.coref 'resource coref)
   (System/setProperty "WNSEARCHDIR" wordnet)
 
   (init-connection {:username user :password pass
-                    :virtual-host "/" :host host :port port})
+                    :virtual-host "/" :host host :port port} chan)
 
   (if job-dist?
-    (dispatch-all-file-paths input-dir)
+    (dispatch-all-file-paths input-dir chan)
     (start-worker (file-str output-dir) grammar))
 
   (if debug?

@@ -22,9 +22,10 @@
      [wordnet w "Wordnet dir (for JWNL)" "data/wordnet"]
      [job-dist? j? "Distributor of jobs?"]
      [narr-chains-count-method c "Count method to use (word-pair, word-pair-and-dep, or word)" "word-pair-and-dep"]
+     [channel x "RabbitMQ channel to use" "nlp"]
      [host h "RabbitMQ hostname." "127.0.0.1"]
      [user u "RabbitMQ username." "guest"]
-     [pass w "RabbitMQ password." "guest"]
+     [pass a "RabbitMQ password." "guest"]
      [debug? d? "Run through only one file for debugging."]
      etc]
 
@@ -39,7 +40,7 @@
                                      :else nil)
                    :count-method (keyword narr-chains-count-method) :mega-merge? narrative-chains-mega-merge?
                    :grammar grammar :coref coref :wordnet wordnet :job-dist? job-dist? :debug? debug?
-                   :host host :user user :pass pass :port 5672}]
+                   :chan channel :host host :user user :pass pass :port 5672}]
 
       (if log-dir
         (with-out-writer (file-str (str log-dir "/" (.. java.net.InetAddress getLocalHost getHostName) "_"

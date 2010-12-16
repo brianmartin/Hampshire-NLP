@@ -55,12 +55,12 @@
   counts to the output directory in xml convenient for further processing."
   [{input-dir :input-dir output-dir :output-dir count-method :count-method
     job-dist? :job-dist?  debug? :debug? mega-merge? :mega-merge?
-    host :host user :user pass :pass port :port}]
+    chan :chan host :host user :user pass :pass port :port}]
 
   (init-connection {:username user :password pass
-                    :virtual-host "/" :host host :port port})
+                    :virtual-host "/" :host host :port port} chan)
 
-  (cond job-dist?   (dispatch-all-file-paths input-dir)
+  (cond job-dist?   (dispatch-all-file-paths input-dir chan)
         mega-merge? (merge-xml-count-maps (file-str input-dir) count-method)
         debug?      (process-off-queue (file-str output-dir) count-method)
         :else       (start-worker (file-str output-dir) count-method)))
