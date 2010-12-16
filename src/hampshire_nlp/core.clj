@@ -1,6 +1,7 @@
 (ns hampshire-nlp.core
   (:require [hampshire-nlp.corpus-preprocessing.core :as corp]
-            [hampshire-nlp.narrative-chains.core :as narr])
+            [hampshire-nlp.narrative-chains.core :as narr]
+            [hampshire-nlp.rabbitmq :as mq])
             ;[hampshire-nlp.relation-extraction.core :as rela])
   (:use [clojure.contrib.command-line]
         [clojure.contrib.duck-streams :only [with-out-writer file-str]])
@@ -26,6 +27,7 @@
      [host h "RabbitMQ hostname." "127.0.0.1"]
      [user u "RabbitMQ username." "guest"]
      [pass a "RabbitMQ password." "guest"]
+     [clear? b? "Clear the queue specified with --channel."]
      [debug? d? "Run through only one file for debugging."]
      etc]
 
@@ -49,10 +51,12 @@
                 (or narrative-chains? narrative-chains-mega-merge?)
                                       (narr/run arg-map)
                 ;relation-extraction? (rela/run arg-map)
+                clear? (mq/init-and-clear-channel arg-map)
                 :else nil))
         (cond corpus-preprocessing? (corp/run arg-map)
               (or narrative-chains? narrative-chains-mega-merge?)
                                     (narr/run arg-map)
               ;relation-extraction? (rela/run arg-map)
+              clear? (mq/init-and-clear-channel arg-map)
               :else nil))))
     (System/exit 0))

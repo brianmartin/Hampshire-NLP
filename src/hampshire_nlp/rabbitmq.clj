@@ -25,3 +25,11 @@
   "Get one message from the queue"
   (try (String. (.. chan (basicGet chan-name true) (getBody)))
     (catch Exception _ nil)))
+
+(defn clear-channel [] (while (not (nil? (get-msg))) nil))
+
+(defn init-and-clear-channel
+  [{chan :chan host :host user :user pass :pass port :port}]
+  (init-connection {:username user :password pass
+                    :virtual-host "/" :host host :port port} chan)
+  (clear-channel))
