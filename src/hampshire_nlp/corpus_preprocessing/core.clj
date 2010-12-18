@@ -13,16 +13,18 @@
   "Does parsing and entity resolution on the file given and writes output to xml
   in the output-dir."
   [file lp dp output-dir]
-  (doseq [document (x/gigaword->documents file)]
-    (if (= "story" (:type document))
-      (try
-        (let [sentences (p/document->sentences (StringReader. (:text document)) dp)
-              parses (p/sentences->parses sentences lp)
-              dep-parses (p/document-dep-strings->clj (p/parses->dep-strings parses))
-              entity-table (c/process-parses (p/parses->treebank-strings parses))]
-          (x/record-as-xml (File. output-dir (str (.getName file) ".xml"))
-                           (:id document) (:type document) sentences dep-parses entity-table))
-        (catch java.lang.Exception _ (println "Exception thrown, skipping document " (:id document)))))))
+  (try
+    (doseq [document (x/gigaword->documents file)]
+      (if (= "story" (:type document))
+        (try
+          (let [sentences (p/document->sentences (StringReader. (:text document)) dp)
+                parses (p/sentences->parses sentences lp)
+                dep-parses (p/document-dep-strings->clj (p/parses->dep-strings parses))
+                entity-table (c/process-parses (p/parses->treebank-strings parses))]
+            (x/record-as-xml (File. output-dir (str (.getName file) ".xml"))
+                             (:id document) (:type document) sentences dep-parses entity-table))
+          (catch java.lang.Exception _ (println "Exception thrown, skipping document " (:id document))))))
+    (catch java.lang.Exception e (println "Exception thrown, skipping entire set of documents (this is bad...)" e))))
 
 (defn process-off-queue
   "Processes one file of of the queue."

@@ -14,14 +14,16 @@
   (println (.getName file))
   (let [merged-count-map (atom {})
         total (atom 0)]
-    (doseq [document (x/file->documents file)]
-      (let [entity-table (x/document->entity-table document)
-            parses (x/document->parses document)
-            entity-resolved-parses (c/count-occurences entity-table parses)
-            count-map (make-count-map entity-resolved-parses count-method)
-            single-total (cl/total-pair-count count-map)]
-        (reset! merged-count-map (merge-two-count-maps @merged-count-map count-map))
-        (reset! total (+ single-total @total))))
+    (try
+      (doseq [document (x/file->documents file)]
+        (let [entity-table (x/document->entity-table document)
+              parses (x/document->parses document)
+              entity-resolved-parses (c/count-occurences entity-table parses)
+              count-map (make-count-map entity-resolved-parses count-method)
+              single-total (cl/total-pair-count count-map)]
+          (reset! merged-count-map (merge-two-count-maps @merged-count-map count-map))
+          (reset! total (+ single-total @total))))
+        (catch java.lang.Exception e (println "Document level exception: " e)))
     (x/record-count-map-as-xml
       (File. output-dir (str (.getName file) "_count_map.xml"))
       (.getName file) @merged-count-map @total count-method)))
