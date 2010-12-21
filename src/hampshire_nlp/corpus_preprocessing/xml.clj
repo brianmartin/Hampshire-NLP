@@ -33,7 +33,7 @@
     [:sentence
       {:id index}
       [:parses (sentence-dep-parses->xml dep-parse index)]
-      [:text [:raw! (areduce s-array i ret (str "") (str ret (aget s-array i) \space))]]]))
+      [:text (areduce s-array i ret (str "") (str ret (aget s-array i) \space))]]))
 
 (defn sentences->xml
   [sentences dep-parses]
@@ -43,7 +43,7 @@
 (defn record-as-xml
   [output-file doc-id doc-type sentences dep-parses entity-table]
   (with-out-append-writer output-file
-    (prxml [:doc {:id doc-id :type doc-type} 
+    (prxml [:doc {:id doc-id :type doc-type}
              [:entity-table (entity-table->xml entity-table)]
              (sentences->xml sentences dep-parses)])))
 
